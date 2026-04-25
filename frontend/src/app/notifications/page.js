@@ -96,6 +96,7 @@ const menuItems = [
   { icon: Wallet, label: 'Budgets', href: '/budgets' },
   { icon: Activity, label: 'Analytics', href: '/analytics' },
   { icon: BarChart3, label: 'Reports', href: '/reports' },
+  { icon: Zap, label: 'Insights', href: '/insights' },
   { icon: Bell, label: 'Notifications', href: '/notifications' },
 ];
 

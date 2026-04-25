@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, LogOut, Settings, Bell, Lock, Mail, User as UserIcon, Eye, EyeOff, Menu, X } from 'lucide-react';
+import { TrendingUp, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, LogOut, Settings, Bell, Lock, Mail, User as UserIcon, Eye, EyeOff, Menu, X, Zap, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,9 @@ const menuItems = [
   { icon: Wallet, label: 'Budgets', href: '/budgets' },
   { icon: Activity, label: 'Analytics', href: '/analytics' },
   { icon: BarChart3, label: 'Reports', href: '/reports' },
+  { icon: Zap, label: 'Insights', href: '/insights' },
   { icon: Bell, label: 'Notifications', href: '/notifications' },
+  { icon: CreditCard, label: 'Bank Accounts', href: '/bank-accounts' },
 ];
 
 export default function SettingsPage() {

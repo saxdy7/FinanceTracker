@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "projectSettings": {
+    "sourceFilesOutsideRootDirectory": true
+  },
+  "builds": [
+    {
+      "src": "backend/package.json",
+      "use": "@vercel/node@2.15.0"
+    },
+    {
+      "src": "frontend/next.config.js",
+      "use": "@vercel/next@4.2.3"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/v1(.*)",
+      "dest": "backend/src/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "JWT_SECRET": "@jwt_secret",
+    "JWT_EXPIRE": "7d",
+    "NODE_ENV": "production",
+    "FRONTEND_URL": "@frontend_url",
+    "SESSION_SECRET": "@session_secret",
+    "OPENAI_API_KEY": "@openai_api_key"
+  }
+}

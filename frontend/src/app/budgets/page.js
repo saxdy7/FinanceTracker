@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, LogOut, Settings, Bell, Trash2, AlertCircle, Menu, X } from 'lucide-react';
+import { Plus, TrendingUp, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, LogOut, Settings, Bell, Trash2, Edit2, AlertCircle, Menu, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +16,7 @@ const menuItems = [
   { icon: Wallet, label: 'Budgets', href: '/budgets' },
   { icon: Activity, label: 'Analytics', href: '/analytics' },
   { icon: BarChart3, label: 'Reports', href: '/reports' },
+  { icon: Zap, label: 'Insights', href: '/insights' },
   { icon: Bell, label: 'Notifications', href: '/notifications' },
 ];
 
