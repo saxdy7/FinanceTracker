@@ -12,14 +12,27 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = [
+  // Local development — any port
+  /^http:\/\/localhost(:\d+)?$/,
+  // Vercel production + all preview deployments
+  /^https:\/\/.*\.vercel\.app$/,
+  // Render frontend (if any)
+  /^https:\/\/.*\.onrender\.com$/,
+];
+
+// Also allow the explicit FRONTEND_URL from env
+const FRONTEND_URL = process.env.FRONTEND_URL || '';
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow any localhost port or exactly the FRONTEND_URL or no origin (Postman/mobile)
-    if (!origin || origin.startsWith('http://localhost') || origin === process.env.FRONTEND_URL) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // Allow no-origin requests (Postman, mobile apps)
+    if (!origin) return callback(null, true);
+    // Check against explicit FRONTEND_URL
+    if (origin === FRONTEND_URL) return callback(null, true);
+    // Check against regex patterns
+    if (allowedOrigins.some(pattern => pattern.test(origin))) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true
 };
@@ -40,11 +53,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Session Configuration
+const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-session-secret',
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false, httpOnly: true }
+  saveUninitialized: false,
+  cookie: { secure: isProd, httpOnly: true, sameSite: isProd ? 'none' : 'lax' }
 }));
 
 // Routes
