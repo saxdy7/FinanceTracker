@@ -64,14 +64,14 @@ router.get('/models', verifyToken, (req, res) => {
     success: true,
     models: [
       {
-        id: 'llama3-8b-8192',
-        name: 'Llama 3 8B',
+        id: 'llama-3.1-8b-instant',
+        name: 'Llama 3.1 8B',
         description: 'Fast, accurate financial advice',
         active: true
       },
       {
-        id: 'llama3-70b-8192',
-        name: 'Llama 3 70B',
+        id: 'llama-3.3-70b-versatile',
+        name: 'Llama 3.3 70B',
         description: 'Advanced reasoning model',
         active: false
       }

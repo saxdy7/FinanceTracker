@@ -16,7 +16,7 @@ class GroqService {
       Focus on saving tips, budget optimization, and spending habits.
       Current user context: ${JSON.stringify(userContext)}`;
 
-      const model = process.env.GROQ_MODEL || 'llama3-8b-8192';
+      const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
       const apiKey = process.env.GROQ_API_KEY;
       
       const response = await axios.post(
@@ -78,7 +78,7 @@ class GroqService {
       Budget Status: ${JSON.stringify(budgetStatus)}
       Keep it motivating and actionable.`;
 
-      const model = process.env.GROQ_MODEL || 'llama3-8b-8192';
+      const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
       const apiKey = process.env.GROQ_API_KEY;
 
       const response = await axios.post(

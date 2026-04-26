@@ -97,8 +97,9 @@ export default function ExpensesPage() {
       });
     } catch (error) {
       console.error('Error adding expense:', error);
-      const msg = error?.response?.data?.message || 'Error adding expense. Please check all fields.';
-      alert(msg);
+      const networkError = error.message === 'Network Error' ? 'Backend is offline.' : null;
+      const msg = error?.response?.data?.message || error?.response?.data?.error || networkError || error.message || 'Error adding expense. Please check all fields.';
+      alert(`Add Expense Failed: ${msg}`);
     }
   };
 
