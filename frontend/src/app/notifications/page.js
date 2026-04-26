@@ -1,27 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Bell, Search, Filter, Trash2, CheckCircle, Info, AlertTriangle, Archive, X, AlertCircle, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, Settings, LogOut, TrendingUp, Zap, Wifi, WifiOff } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Bell, Search, Trash2, CheckCircle, Info, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
+import DashboardLayout from '@/components/DashboardLayout';
 import axios from 'axios';
 
-const menuItems = [
-  { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
-  { icon: FileText, label: 'Transactions', href: '/transactions' },
-  { icon: MessageSquare, label: 'Expenses', href: '/expenses' },
-  { icon: Wallet, label: 'Budgets', href: '/budgets' },
-  { icon: Activity, label: 'Analytics', href: '/analytics' },
-  { icon: BarChart3, label: 'Reports', href: '/reports' },
-  { icon: Zap, label: 'Insights', href: '/insights' },
-  { icon: Bell, label: 'Notifications', href: '/notifications' },
-];
+
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -248,14 +238,16 @@ export default function NotificationsPage() {
     },
   };
 
-  if (!mounted || !user || loading) {
+  if (!mounted || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto"></div>
-          <p className="text-gray-600 font-inter">Loading notifications...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center flex-1 min-h-screen">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto"></div>
+            <p className="text-gray-600">Loading notifications...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -269,77 +261,17 @@ export default function NotificationsPage() {
     }
   };
 
+  const statusBadge = (
+    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
+      socketConnected ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+    }`}>
+      {socketConnected ? <><Wifi className="w-3 h-3" /><span>Live</span></> : <><WifiOff className="w-3 h-3" /><span>Offline</span></>}
+    </div>
+  );
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 hidden lg:flex flex-col shadow-sm">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="font-poppins font-bold text-2xl text-blue-600">FinanceTracker</h2>
-        </div>
-
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {menuItems.map((item, idx) => (
-            <Link
-              key={idx}
-              href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
-                pathname === item.href
-                  ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="font-inter font-medium text-sm">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="px-4 py-6 border-t border-gray-100 space-y-2">
-          <Link
-            href="/settings"
-            className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-all"
-          >
-            <Settings className="w-5 h-5" />
-            <span className="font-inter font-medium text-sm">Settings</span>
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-inter font-medium text-sm">Logout</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
-          <div className="px-8 py-4 flex items-center justify-between">
-            <h1 className="font-poppins font-bold text-2xl text-gray-900">Notifications</h1>
-            <div className="flex items-center gap-4">
-              <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
-                socketConnected
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-red-50 text-red-700'
-              }`}>
-                {socketConnected ? (
-                  <>
-                    <Wifi className="w-4 h-4" />
-                    <span className="text-xs font-semibold">Live</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="w-4 h-4" />
-                    <span className="text-xs font-semibold">Offline</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 space-y-6">
+    <DashboardLayout pageTitle="Notifications" actions={statusBadge}>
+      <div className="p-4 sm:p-8 space-y-6">
           {/* Toolbar */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex gap-2 w-full sm:w-auto">
@@ -434,7 +366,6 @@ export default function NotificationsPage() {
             </AnimatePresence>
           </motion.div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }

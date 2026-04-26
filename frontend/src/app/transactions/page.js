@@ -1,28 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Download, Filter, Trash2, Edit2, Plus, TrendingUp, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, LogOut, Settings, Bell, MoreVertical, Menu, X, Zap } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { Search, Download, Trash2, Edit2, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { containerVariants, itemVariants, headerVariants, sidebarVariants, contentVariants } from '@/utils/animations';
-import MobileNav from '@/components/MobileNav';
+import DashboardLayout from '@/components/DashboardLayout';
 import axios from 'axios';
 
-const menuItems = [
-  { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
-  { icon: FileText, label: 'Transactions', href: '/transactions' },
-  { icon: MessageSquare, label: 'Expenses', href: '/expenses' },
-  { icon: Wallet, label: 'Budgets', href: '/budgets' },
-  { icon: Activity, label: 'Analytics', href: '/analytics' },
-  { icon: BarChart3, label: 'Reports', href: '/reports' },
-  { icon: Zap, label: 'Insights', href: '/insights' },
-  { icon: Bell, label: 'Notifications', href: '/notifications' },
-];
+
 
 export default function TransactionsPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -128,14 +116,16 @@ export default function TransactionsPage() {
     router.push('/login');
   };
 
-  if (!mounted || !user || loading) {
+  if (!mounted || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto"></div>
-          <p className="text-gray-600 font-inter">Loading transactions...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center flex-1 min-h-screen">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto" />
+            <p className="text-gray-600">Loading transactions...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -147,91 +137,20 @@ export default function TransactionsPage() {
 
   const categories = [...new Set(transactions.map(t => t.category))];
 
+  const pageActions = (
+    <button
+      onClick={() => setShowAddModal(true)}
+      className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm font-medium"
+    >
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">Add Transaction</span>
+      <span className="sm:hidden">Add</span>
+    </button>
+  );
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 h-screen bg-white border-r border-gray-100 fixed left-0 top-0 flex-col z-30">
-        <div className="p-6 border-b border-gray-100">
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-poppins font-bold text-lg text-gray-900">FinanceTracker</span>
-          </Link>
-        </div>
-
-        <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-inter font-medium text-sm">{item.label}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="border-t border-gray-100 p-3 space-y-1">
-          <Link
-            href="/settings"
-            className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-all"
-          >
-            <Settings className="w-5 h-5" />
-            <span className="font-inter font-medium text-sm">Settings</span>
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-inter font-medium text-sm">Logout</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 overflow-auto">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
-          <div className="px-4 sm:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4 lg:hidden">
-              <MobileNav menuItems={menuItems} pathname={pathname} onLogout={handleLogout} />
-            </div>
-            
-            <h1 className="font-poppins font-bold text-lg sm:text-2xl text-gray-900">All Transactions</h1>
-            
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-inter font-medium text-xs sm:text-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Transaction</span>
-                <span className="sm:hidden">Add</span>
-              </button>
-              <Link href="/notifications" className="p-2 hover:bg-gray-100 rounded-lg transition hidden sm:block">
-                <Bell className="w-5 h-5 text-gray-600" />
-              </Link>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm cursor-pointer hover:shadow-md transition" title={`${user?.firstName} ${user?.lastName}`}>
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 sm:p-8">
+    <DashboardLayout pageTitle="All Transactions" actions={pageActions}>
+      <div className="p-4 sm:p-8">
           {/* Filters */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -348,8 +267,7 @@ export default function TransactionsPage() {
               </div>
             )}
           </div>
-        </div>
-      </main>
+      </div>
 
       {/* Add Transaction Modal */}
       <AnimatePresence>
@@ -369,56 +287,44 @@ export default function TransactionsPage() {
               <h2 className="font-poppins font-bold text-xl sm:text-2xl mb-6">Add Transaction</h2>
               <div className="space-y-4">
                 <input
-                  type="text"
-                  placeholder="Description"
+                  type="text" placeholder="Description"
                   value={newTransaction.description}
                   onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg font-inter text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 />
                 <input
-                  type="number"
-                  placeholder="Amount"
+                  type="number" placeholder="Amount"
                   value={newTransaction.amount}
                   onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg font-inter text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 />
                 <select
                   value={newTransaction.category}
                   onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg font-inter text-sm focus:outline-none focus:border-blue-500"
-              >
-                <option>Food</option>
-                <option>Transport</option>
-                <option>Shopping</option>
-                <option>Entertainment</option>
-                <option>Utilities</option>
-                <option>Other</option>
-              </select>
-              <input
-                type="date"
-                value={newTransaction.date}
-                onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg font-inter text-sm focus:outline-none focus:border-blue-500"
-              />
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition font-inter font-medium text-sm"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddTransaction}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-inter font-medium text-sm"
-                >
-                  Add
-                </button>
+                  <option value="food">Food</option>
+                  <option value="transport">Transport</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="utilities">Utilities</option>
+                  <option value="other">Other</option>
+                </select>
+                <input
+                  type="date"
+                  value={newTransaction.date}
+                  onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                />
+                <div className="flex space-x-3 pt-2">
+                  <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition text-sm font-medium">Cancel</button>
+                  <button onClick={handleAddTransaction} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">Add</button>
+                </div>
               </div>
-            </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </DashboardLayout>
   );
 }

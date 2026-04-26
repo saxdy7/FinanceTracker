@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function MobileNav({ menuItems, pathname, onLogout }) {
+export default function MobileNav({ menuItems, onLogout }) {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   const menuVariants = {
     hidden: { opacity: 0, x: -300 },

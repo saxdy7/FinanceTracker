@@ -1,29 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, LogOut, Settings, Bell, Lock, Mail, User as UserIcon, Eye, EyeOff, Menu, X, Zap, CreditCard } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { containerVariants, itemVariants, headerVariants, sidebarVariants, contentVariants, formInputVariants } from '@/utils/animations';
-import MobileNav from '@/components/MobileNav';
+import { Lock, Settings, Eye, EyeOff } from 'lucide-react';
+import { User as UserIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/components/DashboardLayout';
 import axios from 'axios';
-
-const menuItems = [
-  { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
-  { icon: FileText, label: 'Transactions', href: '/transactions' },
-  { icon: MessageSquare, label: 'Expenses', href: '/expenses' },
-  { icon: Wallet, label: 'Budgets', href: '/budgets' },
-  { icon: Activity, label: 'Analytics', href: '/analytics' },
-  { icon: BarChart3, label: 'Reports', href: '/reports' },
-  { icon: Zap, label: 'Insights', href: '/insights' },
-  { icon: Bell, label: 'Notifications', href: '/notifications' },
-  { icon: CreditCard, label: 'Bank Accounts', href: '/bank-accounts' },
-];
 
 export default function SettingsPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
@@ -188,84 +173,19 @@ export default function SettingsPage() {
 
   if (!mounted || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto"></div>
-          <p className="text-gray-600 font-inter">Loading settings...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center flex-1 min-h-screen">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto"></div>
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 h-screen bg-white border-r border-gray-100 fixed left-0 top-0 flex-col z-30">
-        <div className="p-6 border-b border-gray-100">
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-poppins font-bold text-lg text-gray-900">FinanceTracker</span>
-          </Link>
-        </div>
-
-        <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-inter font-medium text-sm">{item.label}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="border-t border-gray-100 p-3 space-y-1">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-inter font-medium text-sm">Logout</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 overflow-auto">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
-          <div className="px-4 sm:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4 lg:hidden">
-              <MobileNav menuItems={menuItems} pathname={pathname} onLogout={handleLogout} />
-            </div>
-            
-            <h1 className="font-poppins font-bold text-lg sm:text-2xl text-gray-900">Settings</h1>
-            
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <Link href="/notifications" className="p-2 hover:bg-gray-100 rounded-lg transition hidden sm:block">
-                <Bell className="w-5 h-5 text-gray-600" />
-              </Link>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm cursor-pointer hover:shadow-md transition" title={`${user?.firstName} ${user?.lastName}`}>
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
+    <DashboardLayout pageTitle="Settings">
         <div className="p-4 sm:p-8 max-w-4xl">
           {/* Message Alert */}
           {message && (
@@ -511,7 +431,6 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }
