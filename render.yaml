@@ -1,0 +1,61 @@
+# Render Blueprint for FinanceTracker
+# Deploys: Backend (Node.js Web Service) + Frontend (Next.js Static Site)
+
+services:
+  # ─────────────────────────────────────────
+  # BACKEND — Node.js API + Socket.IO
+  # ─────────────────────────────────────────
+  - type: web
+    name: financetracker-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false          # set manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama3-8b-8192
+      - key: EMAIL_SERVICE
+        value: gmail
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: API_VERSION
+        value: v1
+      - key: FRONTEND_URL
+        # Will be set to the frontend Render URL after first deploy
+        sync: false
+
+  # ─────────────────────────────────────────
+  # FRONTEND — Next.js (Node server)
+  # ─────────────────────────────────────────
+  - type: web
+    name: financetracker-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        # Set this to your backend Render URL, e.g. https://financetracker-backend.onrender.com/api/v1
+        sync: false
