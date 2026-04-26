@@ -31,12 +31,20 @@ const userSchema = new mongoose.Schema({
     default: 'user'
   },
   bankAccounts: [{
+    accountType: {
+      type: String,
+      enum: ['bank', 'upi', 'credit-card', 'debit-card'],
+      default: 'bank'
+    },
     bankName: String,
-    accountNumber: String,
+    accountNumber: String,        // last 4 digits for bank/card, full UPI ID for UPI
     accountHolder: String,
+    ifscCode: String,             // for bank accounts
+    upiId: String,                // for UPI (e.g., name@upi)
+    cardNetwork: String,          // Visa, Mastercard, RuPay
     verified: {
       type: Boolean,
-      default: false
+      default: true               // auto-verified; no admin approval needed
     },
     addedAt: {
       type: Date,

@@ -170,17 +170,17 @@ Generated: ${new Date().toLocaleDateString()}
 
 SUMMARY
 -------
-Total Spent: $${reportData.totalSpent.toFixed(2)}
-Total Budgeted: $${reportData.totalBudgeted.toFixed(2)}
+Total Spent: ₹${reportData.totalSpent.toLocaleString('en-IN')}
+Total Budgeted: ₹${reportData.totalBudgeted.toLocaleString('en-IN')}
 Spent vs Budget: ${reportData.spentVsBudget}%
 
 MONTHLY SPENDING (Last 6 Months)
 ---------
-${reportData.monthlyComparison.map(m => `${m.month}: $${m.amount.toFixed(2)}`).join('\n')}
+${reportData.monthlyComparison.map(m => `${m.month}: ₹${m.amount.toLocaleString('en-IN')}`).join('\n')}
 
 CATEGORY BREAKDOWN
 ------------------
-${reportData.categoryBreakdown.map(c => `${c.name}: $${c.value.toFixed(2)}`).join('\n')}
+${reportData.categoryBreakdown.map(c => `${c.name}: ₹${c.value.toLocaleString('en-IN')}`).join('\n')}
 
 BUDGET PERFORMANCE
 ------------------
@@ -283,7 +283,7 @@ ${reportData.budgetPerformance.map(b => `${b.category}: $${b.spent}/$${b.budgete
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <p className="text-gray-600 text-sm font-inter mb-2">Total Spent</p>
               <h2 className="font-poppins font-bold text-3xl text-gray-900">
-                ${reportData.totalSpent.toFixed(2)}
+                ₹{reportData.totalSpent.toLocaleString('en-IN')}
               </h2>
               <p className="text-blue-600 text-sm font-inter mt-2">
                 All time spending
@@ -293,7 +293,7 @@ ${reportData.budgetPerformance.map(b => `${b.category}: $${b.spent}/$${b.budgete
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <p className="text-gray-600 text-sm font-inter mb-2">Total Budgeted</p>
               <h2 className="font-poppins font-bold text-3xl text-gray-900">
-                ${reportData.totalBudgeted.toFixed(2)}
+                ₹{reportData.totalBudgeted.toLocaleString('en-IN')}
               </h2>
               <p className="text-green-600 text-sm font-inter mt-2">
                 Across all budgets
@@ -388,15 +388,15 @@ ${reportData.budgetPerformance.map(b => `${b.category}: $${b.spent}/$${b.budgete
                         <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="px-6 py-4 font-inter text-sm text-gray-900">{item.category}</td>
                           <td className="px-6 py-4 text-sm font-semibold text-right text-gray-900">
-                            ${item.budgeted.toFixed(2)}
+                            ₹{item.budgeted.toLocaleString('en-IN')}
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-right text-gray-900">
-                            ${item.spent.toFixed(2)}
+                            ₹{item.spent.toLocaleString('en-IN')}
                           </td>
                           <td className={`px-6 py-4 text-sm font-semibold text-right ${
                             isOver ? 'text-red-600' : 'text-green-600'
                           }`}>
-                            ${Math.abs(remaining).toFixed(2)}
+                            ₹{Math.abs(remaining).toLocaleString('en-IN')}
                           </td>
                           <td className="px-6 py-4 text-sm text-right">
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -444,7 +444,7 @@ ${reportData.budgetPerformance.map(b => `${b.category}: $${b.spent}/$${b.budgete
                         <span className="font-inter font-medium text-gray-900">{cat.name}</span>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">${cat.value.toFixed(2)}</p>
+                        <p className="font-semibold text-gray-900">₹{cat.value.toLocaleString('en-IN')}</p>
                         <p className="text-xs text-gray-600">{percentage.toFixed(1)}% of total</p>
                       </div>
                     </div>

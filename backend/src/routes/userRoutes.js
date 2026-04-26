@@ -51,16 +51,34 @@ router.get('/bank-accounts', verifyToken, async (req, res) => {
 // POST /api/v1/users/bank-accounts
 router.post('/bank-accounts', verifyToken, async (req, res) => {
   try {
-    const { bankName, accountNumber, accountHolder } = req.body;
-    if (!bankName || !accountNumber || !accountHolder) {
-      return res.status(400).json({ message: 'bankName, accountNumber and accountHolder are required' });
+    const { accountType, bankName, accountNumber, accountHolder, ifscCode, upiId, cardNetwork } = req.body;
+    
+    // Validate required fields based on type
+    if (!accountHolder) {
+      return res.status(400).json({ message: 'accountHolder is required' });
     }
+    if (accountType === 'upi' && !upiId) {
+      return res.status(400).json({ message: 'upiId is required for UPI accounts' });
+    }
+    if (accountType !== 'upi' && (!bankName || !accountNumber)) {
+      return res.status(400).json({ message: 'bankName and last 4 digits of accountNumber are required' });
+    }
+
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    user.bankAccounts.push({ bankName, accountNumber, accountHolder, verified: false });
+    user.bankAccounts.push({
+      accountType: accountType || 'bank',
+      bankName,
+      accountNumber,
+      accountHolder,
+      ifscCode,
+      upiId,
+      cardNetwork,
+      verified: true   // auto-verified
+    });
     await user.save();
-    res.status(201).json({ message: 'Bank account added', bankAccounts: user.bankAccounts });
+    res.status(201).json({ message: 'Payment method added', bankAccounts: user.bankAccounts });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -76,7 +94,7 @@ router.delete('/bank-accounts/:accountId', verifyToken, async (req, res) => {
       (acc) => acc._id.toString() !== req.params.accountId
     );
     await user.save();
-    res.status(200).json({ message: 'Bank account removed', bankAccounts: user.bankAccounts });
+    res.status(200).json({ message: 'Payment method removed', bankAccounts: user.bankAccounts });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -5,40 +5,48 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const groqService = require('../services/groqService');
 const Chat = require('../models/Chat');
 
-// POST /api/v1/chat - Send message to Groq AI and save to DB
+// ── POST /api/v1/chat ──────────────────────────────────────────────────────
+// Send a message, get AI reply, append BOTH to the single user chat document
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, financialContext } = req.body;
     const userId = req.user.id;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    // Get user context for personalized advice
-    const userContext = { userId, timestamp: new Date() };
+    // Build context
+    const userContext = { userId, timestamp: new Date(), financialContext: financialContext || {} };
 
-    // Get financial advice from Groq
+    // Get AI advice
     const response = await groqService.getFinancialAdvice(message, userContext);
+    const aiReply = response.advice || 'Unable to generate advice.';
 
-    // Save the conversation to MongoDB
+    // Append both messages to the single user document (upsert)
     try {
-      await Chat.create({
-        userId,
-        messages: [
-          { role: 'user', content: message },
-          { role: 'assistant', content: response.advice || 'Unable to generate advice.' }
-        ]
-      });
+      await Chat.findOneAndUpdate(
+        { userId },
+        {
+          $push: {
+            messages: {
+              $each: [
+                { role: 'user',      content: message,  timestamp: new Date() },
+                { role: 'assistant', content: aiReply,  timestamp: new Date() }
+              ]
+            }
+          }
+        },
+        { upsert: true, new: true }
+      );
     } catch (dbErr) {
-      // Non-fatal: log but still return the AI response even if DB save fails
       console.error('Chat DB save error:', dbErr.message);
     }
 
     res.json({
       success: response.success,
-      message: message,
-      advice: response.advice,
+      message,
+      advice: aiReply,
       model: response.model,
       timestamp: new Date()
     });
@@ -48,59 +56,47 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/v1/chat/history - Get past chat sessions for this user
+// ── GET /api/v1/chat/history ───────────────────────────────────────────────
+// Return all messages for this user (newest messages at the end, i.e. chronological)
 router.get('/history', verifyToken, async (req, res) => {
   try {
-    const chats = await Chat.find({ userId: req.user.id })
-      .sort({ createdAt: -1 })
-      .limit(50);
-    res.json({ success: true, chats });
+    const chat = await Chat.findOne({ userId: req.user.id });
+    if (!chat) {
+      return res.json({ success: true, messages: [] });
+    }
+    res.json({ success: true, messages: chat.messages });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/v1/chat/insights - Generate spending insights
+// ── DELETE /api/v1/chat/history ────────────────────────────────────────────
+// Clear all chat history for this user
+router.delete('/history', verifyToken, async (req, res) => {
+  try {
+    await Chat.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: { messages: [] } }
+    );
+    res.json({ success: true, message: 'Chat history cleared' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ── POST /api/v1/chat/insights ─────────────────────────────────────────────
 router.post('/insights', verifyToken, async (req, res) => {
   try {
     const { expenses, budgets } = req.body;
-
     if (!expenses || !budgets) {
       return res.status(400).json({ error: 'Expenses and budgets data required' });
     }
-
     const insights = await groqService.generateSpendingInsights(expenses, budgets);
-
-    res.json({
-      success: insights.success,
-      insights: insights.insights,
-      timestamp: new Date()
-    });
+    res.json({ success: insights.success, insights: insights.insights, timestamp: new Date() });
   } catch (error) {
     console.error('Insights Error:', error);
     res.status(500).json({ error: error.message });
   }
-});
-
-// GET /api/v1/chat/models - Get available AI models
-router.get('/models', verifyToken, (req, res) => {
-  res.json({
-    success: true,
-    models: [
-      {
-        id: 'llama-3.1-8b-instant',
-        name: 'Llama 3.1 8B',
-        description: 'Fast, accurate financial advice',
-        active: true
-      },
-      {
-        id: 'llama-3.3-70b-versatile',
-        name: 'Llama 3.3 70B',
-        description: 'Advanced reasoning model',
-        active: false
-      }
-    ]
-  });
 });
 
 module.exports = router;

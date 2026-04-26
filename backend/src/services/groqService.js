@@ -10,11 +10,25 @@ class GroqService {
 
   async getFinancialAdvice(userMessage, userContext = {}) {
     try {
-      const systemPrompt = `You are an expert financial advisor for a personal finance tracking application.
-      Provide concise, actionable financial advice based on user spending patterns and questions.
-      Keep responses to 2-3 sentences max. Be friendly, encouraging, and practical.
-      Focus on saving tips, budget optimization, and spending habits.
-      Current user context: ${JSON.stringify(userContext)}`;
+      const fc = userContext.financialContext || {};
+
+      const contextBlock = Object.keys(fc).length > 0
+        ? `\nUser's LIVE Financial Data (Indian Rupees ₹):
+- Monthly Spending: ₹${fc.monthlySpent || 0}
+- Total Transactions: ${fc.totalTransactions || 0}
+- All-time Total Spent: ₹${fc.totalSpentAllTime || 0}
+- Top Spending Category: ${fc.topCategory || 'N/A'}
+- Category Breakdown: ${JSON.stringify(fc.categoryBreakdown || {})}
+- Budget Status: ${JSON.stringify(fc.budgetStatus || [])}
+- Recent Transactions: ${JSON.stringify(fc.recentTransactions || [])}
+Use this real data to give personalised, specific advice. Always use ₹ (Indian Rupees) for amounts.`
+        : '';
+
+      const systemPrompt = `You are an expert AI financial advisor for an Indian personal finance app.
+Give concise, practical, and friendly financial advice in 2-4 sentences.
+Always use ₹ (Indian Rupees) for currency amounts. Never use $ (dollars).
+Reference the user's actual data when available.
+Focus on saving tips, budget optimization, and Indian financial instruments (FDs, SIPs, RDs, UPI etc).${contextBlock}`;
 
       const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
       const apiKey = process.env.GROQ_API_KEY;

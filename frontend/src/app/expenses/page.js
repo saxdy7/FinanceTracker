@@ -163,7 +163,7 @@ export default function ExpensesPage() {
             className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100"
           >
             <p className="text-gray-600 text-xs sm:text-sm mb-2">Total Expenses</p>
-            <h2 className="font-poppins font-bold text-2xl sm:text-3xl text-gray-900">${totalExpenses.toFixed(2)}</h2>
+            <h2 className="font-poppins font-bold text-2xl sm:text-3xl text-gray-900">₹{totalExpenses.toLocaleString('en-IN')}</h2>
             <p className="text-green-600 text-xs sm:text-sm mt-2">{expenses.length} transactions</p>
           </motion.div>
           <motion.div
@@ -172,7 +172,7 @@ export default function ExpensesPage() {
           >
             <p className="text-gray-600 text-xs sm:text-sm mb-2">Average Expense</p>
             <h2 className="font-poppins font-bold text-2xl sm:text-3xl text-gray-900">
-              ${expenses.length > 0 ? (totalExpenses / expenses.length).toFixed(2) : '0.00'}
+              ₹{expenses.length > 0 ? (totalExpenses / expenses.length).toLocaleString('en-IN') : '0.00'}
             </h2>
             <p className="text-blue-600 text-xs sm:text-sm mt-2">Per transaction</p>
           </motion.div>
@@ -280,7 +280,7 @@ export default function ExpensesPage() {
                         <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium capitalize">{exp.category}</span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-600">{new Date(exp.date).toLocaleDateString()}</td>
-                      <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-right text-gray-900">${exp.amount.toFixed(2)}</td>
+                      <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-right text-gray-900">₹{exp.amount.toLocaleString('en-IN')}</td>
                       <td className="px-4 sm:px-6 py-4 text-center">
                         <button
                           onClick={() => handleDelete(exp._id)}

@@ -13,6 +13,18 @@ import axios from 'axios';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
+const RupeeTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-4 py-3">
+        <p className="text-xs text-gray-500 mb-1">{label}</p>
+        <p className="text-sm font-bold text-gray-900">₹{payload[0].value?.toLocaleString('en-IN')}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function AnalyticsPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -63,20 +75,29 @@ export default function AnalyticsPage() {
           .sort((a, b) => b.value - a.value)
       );
 
-      // 30-day trend
+      // Local-timezone date string helper (fixes IST offset bug)
+      const toLocalDateStr = (date) => {
+        const d = new Date(date);
+        const y  = d.getFullYear();
+        const m  = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dd}`;
+      };
+
+      // 30-day trend using LOCAL timezone
       const trendMap = {};
       for (let i = 29; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        trendMap[d.toISOString().split('T')[0]] = 0;
+        trendMap[toLocalDateStr(d)] = 0;
       }
       expenseList.forEach(exp => {
-        const key = new Date(exp.date).toISOString().split('T')[0];
+        const key = toLocalDateStr(new Date(exp.date));
         if (key in trendMap) trendMap[key] += exp.amount;
       });
       setTrendData(
         Object.entries(trendMap).map(([date, amount]) => ({
-          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          date: new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
           amount: Math.round(amount)
         }))
       );
@@ -118,9 +139,9 @@ export default function AnalyticsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {[
-            { label: 'Total Spent',     value: `$${totalExpenses.toFixed(2)}`,  sub: 'All time',        color: 'text-green-600' },
-            { label: 'Daily Average',   value: `$${avgDaily.toFixed(2)}`,       sub: 'Last 30 days',    color: 'text-blue-600' },
-            { label: 'Avg Transaction', value: `$${avgTransaction.toFixed(2)}`, sub: 'Per expense',     color: 'text-orange-600' },
+            { label: 'Total Spent',     value: `₹${totalExpenses.toLocaleString('en-IN')}`,  sub: 'All time',        color: 'text-green-600' },
+            { label: 'Daily Average',   value: `₹${avgDaily.toLocaleString('en-IN')}`,       sub: 'Last 30 days',    color: 'text-blue-600' },
+            { label: 'Avg Transaction', value: `₹${avgTransaction.toLocaleString('en-IN')}`, sub: 'Per expense',     color: 'text-orange-600' },
             { label: 'Transactions',    value: expenses.length,                  sub: 'Total records',   color: 'text-purple-600' },
           ].map((s, i) => (
             <motion.div
@@ -148,7 +169,7 @@ export default function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="month" stroke="#9ca3af" tick={{ fontSize: 12 }} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }} />
+                  <Tooltip content={<RupeeTooltip />} />
                   <Bar dataKey="amount" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -169,7 +190,7 @@ export default function AnalyticsPage() {
                     data={categoryData}
                     cx="50%" cy="50%"
                     labelLine={false}
-                    label={({ name, value }) => `${name}: $${value}`}
+                    label={({ name, value }) => `${name}: ₹${value.toLocaleString('en-IN')}`}
                     outerRadius={80}
                     dataKey="value"
                   >
@@ -230,7 +251,7 @@ export default function AnalyticsPage() {
                           <span className="capitalize">{cat.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-right text-gray-900">${cat.value.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-right text-gray-900">₹{cat.value.toLocaleString('en-IN')}</td>
                       <td className="px-6 py-4 text-sm font-semibold text-right text-gray-900">
                         {((cat.value / totalExpenses) * 100).toFixed(1)}%
                       </td>

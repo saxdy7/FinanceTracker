@@ -16,23 +16,17 @@ const messageSchema = new mongoose.Schema({
   }
 });
 
+// One chat session per user — messages are appended over time
 const chatSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    unique: true   // ← one document per user
   },
-  messages: [messageSchema],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+  messages: [messageSchema]
 }, { timestamps: true });
 
-chatSchema.index({ userId: 1, createdAt: -1 });
+chatSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Chat', chatSchema);

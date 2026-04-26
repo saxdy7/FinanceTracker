@@ -187,7 +187,7 @@ export default function InsightsPage() {
       .sort((a, b) => b.amount - a.amount);
 
     return {
-      summary: `You've spent $${totalSpent.toFixed(2)} across ${expenseList.length} transactions. Average expense: $${avgExpense.toFixed(2)}`,
+      summary: `You've spent ₹${totalSpent.toLocaleString('en-IN')} across ${expenseList.length} transactions. Average expense: ₹${avgExpense.toLocaleString('en-IN')}`,
       recommendations,
       spendingPatterns,
       budgetStatus,
@@ -229,11 +229,11 @@ export default function InsightsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-blue-100 text-xs sm:text-sm">Total Spent</p>
-                <p className="font-poppins font-bold text-lg sm:text-2xl">${insights?.totalSpent?.toFixed(2)}</p>
+                <p className="font-poppins font-bold text-lg sm:text-2xl">₹{insights?.totalSpent?.toLocaleString('en-IN')}</p>
               </div>
               <div>
                 <p className="text-blue-100 text-xs sm:text-sm">Average Expense</p>
-                <p className="font-poppins font-bold text-lg sm:text-2xl">${insights?.avgExpense?.toFixed(2)}</p>
+                <p className="font-poppins font-bold text-lg sm:text-2xl">₹{insights?.avgExpense?.toLocaleString('en-IN')}</p>
               </div>
               <div>
                 <p className="text-blue-100 text-xs sm:text-sm">Monthly Growth</p>
@@ -362,7 +362,7 @@ export default function InsightsPage() {
                       <div className={`h-3 rounded-full ${progressColor}`} style={{ width: `${Math.min(budget.percentage, 100)}%` }}></div>
                     </div>
                     <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span>${budget.spent.toFixed(2)} of ${budget.limit.toFixed(2)}</span>
+                      <span>₹{budget.spent.toLocaleString('en-IN')} of ₹{budget.limit.toLocaleString('en-IN')}</span>
                       <span className={`font-semibold ${budget.status === 'exceeded' ? 'text-red-600' : budget.status === 'warning' ? 'text-yellow-600' : 'text-green-600'}`}>
                         {budget.status === 'exceeded' ? 'Exceeded' : budget.status === 'warning' ? 'Warning' : 'On Track'}
                       </span>
