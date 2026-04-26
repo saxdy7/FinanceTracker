@@ -65,7 +65,8 @@ export default function BankAccountsPage() {
       fetchBankAccounts(token);
     } catch (error) {
       console.error('Error adding bank account:', error);
-      alert('Failed to add bank account');
+      const msg = error?.response?.data?.message || 'Failed to add bank account';
+      alert(msg);
     }
   };
 

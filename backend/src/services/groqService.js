@@ -5,8 +5,7 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 class GroqService {
   constructor() {
-    this.apiKey = process.env.GROQ_API_KEY;
-    this.model = process.env.GROQ_MODEL || 'llama3-8b-8192';
+    // Reading these dynamically during requests is safer if dotenv loads late
   }
 
   async getFinancialAdvice(userMessage, userContext = {}) {
@@ -17,10 +16,13 @@ class GroqService {
       Focus on saving tips, budget optimization, and spending habits.
       Current user context: ${JSON.stringify(userContext)}`;
 
+      const model = process.env.GROQ_MODEL || 'llama3-8b-8192';
+      const apiKey = process.env.GROQ_API_KEY;
+      
       const response = await axios.post(
         GROQ_API_URL,
         {
-          model: this.model,
+          model: model,
           messages: [
             {
               role: 'system',
@@ -38,7 +40,7 @@ class GroqService {
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           }
         }
@@ -47,14 +49,15 @@ class GroqService {
       return {
         success: true,
         advice: response.data.choices[0].message.content,
-        model: this.model
+        model: model
       };
     } catch (error) {
-      console.error('Groq API Error:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.error?.message || error.message;
+      console.error('Groq API Error:', errorMsg);
       return {
         success: false,
-        advice: 'Sorry, I couldn\'t generate advice right now. Please try again later.',
-        error: error.message
+        advice: `Sorry, I couldn't generate advice right now. Error: ${errorMsg}`,
+        error: errorMsg
       };
     }
   }
@@ -75,10 +78,13 @@ class GroqService {
       Budget Status: ${JSON.stringify(budgetStatus)}
       Keep it motivating and actionable.`;
 
+      const model = process.env.GROQ_MODEL || 'llama3-8b-8192';
+      const apiKey = process.env.GROQ_API_KEY;
+
       const response = await axios.post(
         GROQ_API_URL,
         {
-          model: this.model,
+          model: model,
           messages: [
             {
               role: 'user',
@@ -90,7 +96,7 @@ class GroqService {
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           }
         }
