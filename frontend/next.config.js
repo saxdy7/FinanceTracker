@@ -4,6 +4,12 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1',
   },
+  experimental: {
+    // Re-enable the Webpack build worker even with custom webpack config
+    webpackBuildWorker: true,
+    // Suppress the deopted-into-client-rendering warning for pages using useSearchParams
+    missingSuspenseWithCSRBailout: false,
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
