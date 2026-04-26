@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TrendingUp, ArrowRight, PieChart, Target, Zap, Shield, CheckCircle2, Send, BarChart3, Smartphone, Globe, Plus, Minus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+// No Button import needed
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function HomePage() {
