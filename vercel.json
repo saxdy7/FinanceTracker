@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "projectSettings": {
-    "sourceFilesOutsideRootDirectory": true
-  },
   "builds": [
     {
       "src": "backend/package.json",
@@ -22,14 +19,5 @@
       "src": "/(.*)",
       "dest": "frontend"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "JWT_EXPIRE": "7d",
-    "NODE_ENV": "production",
-    "FRONTEND_URL": "@frontend_url",
-    "SESSION_SECRET": "@session_secret",
-    "OPENAI_API_KEY": "@openai_api_key"
-  }
+  ]
 }
