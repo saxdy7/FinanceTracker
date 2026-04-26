@@ -49,6 +49,11 @@ app.use('/api/v1/users', require('./routes/userRoutes'));
 app.use('/api/v1/expenses', require('./routes/expenseRoutes'));
 app.use('/api/v1/budgets', require('./routes/budgetRoutes'));
 app.use('/api/v1/admin', require('./routes/adminRoutes'));
+app.use('/api/v1/chat', require('./routes/chatRoutes'));
+app.use('/api/v1/email', require('./routes/emailRoutes'));
+app.use('/api/v1/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/v1/export', require('./routes/exportRoutes'));
+app.use('/api/v1/notifications', require('./routes/notificationRoutes'));
 
 // Health Check Route
 app.get('/api/v1/health', (req, res) => {

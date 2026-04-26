@@ -32,7 +32,9 @@
     "socket.io": "^4.6.0",
     "nodemailer": "^6.9.1",
     "openai": "^3.3.0",
-    "winston": "^3.8.2"
+    "winston": "^3.8.2",
+    "axios": "^1.4.0",
+    "json2csv": "^6.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.22",

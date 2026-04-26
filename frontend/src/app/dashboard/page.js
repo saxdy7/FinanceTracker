@@ -18,6 +18,7 @@ const menuItems = [
   { icon: BarChart3, label: 'Reports', href: '/reports' },
   { icon: Zap, label: 'Insights', href: '/insights' },
   { icon: Bell, label: 'Notifications', href: '/notifications' },
+  { icon: MessageSquare, label: 'AI Advisor', href: '/chat' },
 ];
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
