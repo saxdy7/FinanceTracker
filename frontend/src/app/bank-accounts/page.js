@@ -261,7 +261,7 @@ export default function BankAccountsPage() {
           </motion.div>
 
           {/* Info Box */}
-          <motion.div variants={itemVariants} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.2 }} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
             <h3 className="font-poppins font-bold text-lg text-gray-900 mb-3">How It Works</h3>
             <ol className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start space-x-3">

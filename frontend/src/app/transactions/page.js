@@ -13,6 +13,7 @@ export default function TransactionsPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,9 +24,11 @@ export default function TransactionsPage() {
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
-    category: 'Food',
+    category: 'food',
     date: new Date().toISOString().split('T')[0],
-    paymentMethod: 'Card'
+    paymentMethod: 'cash',
+    bankAccountId: '',
+    bankAccountName: ''
   });
 
   useEffect(() => {
@@ -42,6 +45,7 @@ export default function TransactionsPage() {
     }
 
     fetchTransactions(token);
+    fetchBankAccounts(token);
   }, [router]);
 
   const fetchTransactions = async (token) => {
@@ -55,6 +59,18 @@ export default function TransactionsPage() {
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setLoading(false);
+    }
+  };
+
+  const fetchBankAccounts = async (token) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const response = await axios.get(`${apiUrl}/users/bank-accounts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBankAccounts(response.data.bankAccounts || []);
+    } catch (error) {
+      console.error('Error fetching bank accounts:', error);
     }
   };
 
@@ -92,7 +108,16 @@ export default function TransactionsPage() {
     try {
       const token = localStorage.getItem('token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await axios.post(`${apiUrl}/expenses`, newTransaction, {
+      const payload = {
+        ...newTransaction,
+        category: newTransaction.category.toLowerCase()
+      };
+      // if a bank account was selected, populate its name too
+      if (payload.bankAccountId) {
+        const acc = bankAccounts.find(a => a._id === payload.bankAccountId);
+        if (acc) payload.bankAccountName = `${acc.bankName} ****${acc.accountNumber}`;
+      }
+      const response = await axios.post(`${apiUrl}/expenses`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -101,9 +126,11 @@ export default function TransactionsPage() {
       setNewTransaction({
         description: '',
         amount: '',
-        category: 'Food',
+        category: 'food',
         date: new Date().toISOString().split('T')[0],
-        paymentMethod: 'Card'
+        paymentMethod: 'cash',
+        bankAccountId: '',
+        bankAccountName: ''
       });
     } catch (error) {
       console.error('Error adding transaction:', error);
@@ -245,12 +272,12 @@ export default function TransactionsPage() {
                     try {
                       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
                       const sampleData = [
-                        { description: 'Rent', amount: 1200, category: 'Housing', date: new Date(Date.now() - 2 * 86400000).toISOString() },
-                        { description: 'Groceries', amount: 150, category: 'Food', date: new Date(Date.now() - 5 * 86400000).toISOString() },
-                        { description: 'Netflix', amount: 15, category: 'Entertainment', date: new Date(Date.now() - 10 * 86400000).toISOString() },
-                        { description: 'Gas', amount: 40, category: 'Transport', date: new Date(Date.now() - 12 * 86400000).toISOString() },
-                        { description: 'Electric Bill', amount: 90, category: 'Utilities', date: new Date(Date.now() - 15 * 86400000).toISOString() },
-                        { description: 'Restaurant', amount: 65, category: 'Food', date: new Date(Date.now() - 18 * 86400000).toISOString() }
+                        { description: 'Rent', amount: 1200, category: 'other', date: new Date(Date.now() - 2 * 86400000).toISOString() },
+                        { description: 'Groceries', amount: 150, category: 'food', date: new Date(Date.now() - 5 * 86400000).toISOString() },
+                        { description: 'Netflix', amount: 15, category: 'entertainment', date: new Date(Date.now() - 10 * 86400000).toISOString() },
+                        { description: 'Gas', amount: 40, category: 'transport', date: new Date(Date.now() - 12 * 86400000).toISOString() },
+                        { description: 'Electric Bill', amount: 90, category: 'utilities', date: new Date(Date.now() - 15 * 86400000).toISOString() },
+                        { description: 'Restaurant', amount: 65, category: 'food', date: new Date(Date.now() - 18 * 86400000).toISOString() }
                       ];
                       for (const exp of sampleData) {
                         await axios.post(`${apiUrl}/expenses`, exp, { headers: { Authorization: `Bearer ${token}` } });
@@ -316,6 +343,23 @@ export default function TransactionsPage() {
                   onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 />
+                {bankAccounts.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Paid from Bank Account (optional)</label>
+                    <select
+                      value={newTransaction.bankAccountId}
+                      onChange={(e) => setNewTransaction({...newTransaction, bankAccountId: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">-- No bank account --</option>
+                      {bankAccounts.map((acc) => (
+                        <option key={acc._id} value={acc._id}>
+                          {acc.bankName} ****{acc.accountNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="flex space-x-3 pt-2">
                   <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition text-sm font-medium">Cancel</button>
                   <button onClick={handleAddTransaction} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">Add</button>

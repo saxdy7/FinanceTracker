@@ -41,15 +41,17 @@ router.get('/', verifyToken, async (req, res) => {
 // Create Expense
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const { description, amount, category, date, paymentMethod, tags, notes } = req.body;
+    const { description, amount, category, date, paymentMethod, bankAccountId, bankAccountName, tags, notes } = req.body;
 
     const expense = new Expense({
       userId: req.user.id,
       description,
       amount,
-      category,
+      category: category ? category.toLowerCase() : category, // normalise casing
       date,
       paymentMethod,
+      bankAccountId: bankAccountId || null,
+      bankAccountName: bankAccountName || null,
       tags,
       notes
     });

@@ -31,9 +31,17 @@ const expenseSchema = new mongoose.Schema({
     enum: ['cash', 'credit-card', 'debit-card', 'bank-transfer', 'digital-wallet'],
     default: 'cash'
   },
+  bankAccountId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null
+  },
+  bankAccountName: {
+    type: String,
+    default: null
+  },
   tags: [String],
   notes: String,
-  receipt: String, // URL to receipt image
+  receipt: String,
   isRecurring: {
     type: Boolean,
     default: false
