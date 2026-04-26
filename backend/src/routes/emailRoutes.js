@@ -1,13 +1,13 @@
 // Email Routes for sending notifications and reports
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const emailService = require('../services/emailService');
 const Expense = require('../models/Expense');
 const Budget = require('../models/Budget');
 
 // POST /api/v1/email/alert - Send budget alert
-router.post('/alert', authMiddleware, async (req, res) => {
+router.post('/alert', verifyToken, async (req, res) => {
   try {
     const { category, spent, limit } = req.body;
     const userEmail = req.user.email;
@@ -33,7 +33,7 @@ router.post('/alert', authMiddleware, async (req, res) => {
 });
 
 // POST /api/v1/email/weekly-summary - Send weekly summary
-router.post('/weekly-summary', authMiddleware, async (req, res) => {
+router.post('/weekly-summary', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const userEmail = req.user.email;
@@ -72,7 +72,7 @@ router.post('/weekly-summary', authMiddleware, async (req, res) => {
 });
 
 // POST /api/v1/email/monthly-report - Send monthly report
-router.post('/monthly-report', authMiddleware, async (req, res) => {
+router.post('/monthly-report', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const userEmail = req.user.email;
@@ -145,7 +145,7 @@ router.post('/password-reset', async (req, res) => {
 });
 
 // POST /api/v1/email/test - Test email configuration
-router.post('/test', authMiddleware, async (req, res) => {
+router.post('/test', verifyToken, async (req, res) => {
   try {
     const userEmail = req.user.email;
     const testHtml = `

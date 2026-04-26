@@ -1,11 +1,11 @@
 // Chat Routes with Groq AI Integration
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const groqService = require('../services/groqService');
 
 // POST /api/v1/chat - Send message to Groq AI
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const { message } = req.body;
     const userId = req.user.id;
@@ -37,7 +37,7 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // POST /api/v1/chat/insights - Generate spending insights
-router.post('/insights', authMiddleware, async (req, res) => {
+router.post('/insights', verifyToken, async (req, res) => {
   try {
     const { expenses, budgets } = req.body;
 
@@ -59,7 +59,7 @@ router.post('/insights', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/chat/models - Get available AI models
-router.get('/models', authMiddleware, (req, res) => {
+router.get('/models', verifyToken, (req, res) => {
   res.json({
     success: true,
     models: [

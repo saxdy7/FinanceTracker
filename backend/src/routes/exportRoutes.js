@@ -1,13 +1,13 @@
 // Export Routes for CSV/JSON data export
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const exportService = require('../services/exportService');
 const Expense = require('../models/Expense');
 const Budget = require('../models/Budget');
 
 // GET /api/v1/export/expenses-csv - Export expenses as CSV
-router.get('/expenses-csv', authMiddleware, async (req, res) => {
+router.get('/expenses-csv', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const expenses = await Expense.find({ userId: userId });
@@ -28,7 +28,7 @@ router.get('/expenses-csv', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/export/budgets-csv - Export budgets as CSV
-router.get('/budgets-csv', authMiddleware, async (req, res) => {
+router.get('/budgets-csv', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const budgets = await Budget.find({ userId: userId });
@@ -50,7 +50,7 @@ router.get('/budgets-csv', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/export/monthly-report-csv - Export monthly report as CSV
-router.get('/monthly-report-csv', authMiddleware, async (req, res) => {
+router.get('/monthly-report-csv', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { month, year } = req.query;
@@ -84,7 +84,7 @@ router.get('/monthly-report-csv', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/export/summary-json - Export summary as JSON
-router.get('/summary-json', authMiddleware, async (req, res) => {
+router.get('/summary-json', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const expenses = await Expense.find({ userId: userId });
@@ -100,7 +100,7 @@ router.get('/summary-json', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/export/full-report - Export complete user data
-router.get('/full-report', authMiddleware, async (req, res) => {
+router.get('/full-report', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = req.user;
@@ -138,7 +138,7 @@ router.get('/full-report', authMiddleware, async (req, res) => {
 });
 
 // POST /api/v1/export/schedule - Schedule regular exports
-router.post('/schedule', authMiddleware, async (req, res) => {
+router.post('/schedule', verifyToken, async (req, res) => {
   try {
     const { frequency, format, email } = req.body;
 

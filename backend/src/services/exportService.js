@@ -1,9 +1,21 @@
 // Export Service for CSV and JSON data export
-const json2csv = require('json2csv').parse;
+let json2csv;
+try {
+  json2csv = require('json2csv').parse;
+} catch (error) {
+  console.warn('json2csv not installed, export features disabled');
+  json2csv = null;
+}
 
 class ExportService {
   exportToCSV(data, filename) {
     try {
+      if (!json2csv) {
+        return {
+          success: false,
+          error: 'json2csv not installed - run: npm install json2csv'
+        };
+      }
       const csv = json2csv(data);
       return {
         success: true,

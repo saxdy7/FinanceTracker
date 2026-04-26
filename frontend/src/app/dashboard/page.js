@@ -58,12 +58,12 @@ export default function DashboardPage() {
   const fetchDashboardData = async (token) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      
+
       // Fetch expenses
       const expensesRes = await axios.get(`${apiUrl}/expenses`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const expenseList = expensesRes.data.expenses || [];
       setExpenses(expenseList.slice(0, 5)); // Recent 5 transactions
 
@@ -78,12 +78,8 @@ export default function DashboardPage() {
         name,
         value: Math.round(value)
       })).slice(0, 5);
-      
-      setSpendingData(spendingArray.length > 0 ? spendingArray : [
-        { name: 'Shopping', value: 725 },
-        { name: 'Home', value: 2350 },
-        { name: 'Others', value: 710 },
-      ]);
+
+      setSpendingData(spendingArray);
 
       // Generate money flow data (last 7 days)
       const flowData = generateMoneyFlowData(expenseList);
@@ -97,17 +93,11 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setLoading(false);
-      // Use default data if API fails
-      setMoneyFlowData([
-        { date: 'Jan 10', income: 2000, expenses: 1200 },
-        { date: 'Jan 11', income: 2200, expenses: 1400 },
-        { date: 'Jan 12', income: 2800, expenses: 1100 },
-        { date: 'Jan 13', income: 2500, expenses: 1800 },
-        { date: 'Jan 14', income: 3000, expenses: 1600 },
-        { date: 'Jan 15', income: 2300, expenses: 1300 },
-        { date: 'Jan 16', income: 3200, expenses: 1700 },
-      ]);
-      setTotalBalance(24098);
+      // Show empty state instead of fake data
+      setMoneyFlowData([]);
+      setSpendingData([]);
+      setExpenses([]);
+      setTotalBalance(50000);
     }
   };
 
@@ -118,7 +108,7 @@ export default function DashboardPage() {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      
+
       const dayExpenses = expenseList
         .filter(exp => {
           const expDate = new Date(exp.date);
@@ -128,7 +118,7 @@ export default function DashboardPage() {
 
       data.push({
         date: dateStr,
-        income: 2000 + Math.random() * 2000,
+        income: 0, // No income data available in current schema
         expenses: dayExpenses
       });
     }
@@ -251,24 +241,7 @@ export default function DashboardPage() {
 
         {/* Dashboard Content */}
         <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
-          {/* Promo Card */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl sm:rounded-2xl p-4 sm:p-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-lg"
-          >
-            <div className="space-y-3 flex-1">
-              <h2 className="font-poppins font-bold text-2xl sm:text-3xl">Unlimited Cashback</h2>
-              <p className="text-blue-100 text-sm sm:text-base">Instant 2% back on all your spendings in your account.</p>
-              <button className="mt-4 px-6 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition text-sm sm:text-base">
-                Upgrade Now →
-              </button>
-            </div>
-            <div className="text-6xl sm:text-8xl opacity-10 mt-4 sm:mt-0">💳</div>
-          </motion.div>
-
-          {/* Grid Layout - Responsive */}
+          {/* Wallet Card */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Left Column */}
             <div className="col-span-1 md:col-span-2 space-y-4 sm:space-y-6">
@@ -329,33 +302,13 @@ export default function DashboardPage() {
                     </div>
                   )) : (
                     <div className="text-center py-8 space-y-3">
-                      <p className="text-gray-500">No expenses yet.</p>
-                      <button 
-                        onClick={async () => {
-                          const token = localStorage.getItem('token');
-                          if (!token) return;
-                          try {
-                            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-                            const sampleData = [
-                              { description: 'Rent', amount: 1200, category: 'Housing', date: new Date(Date.now() - 2 * 86400000).toISOString() },
-                              { description: 'Groceries', amount: 150, category: 'Food', date: new Date(Date.now() - 5 * 86400000).toISOString() },
-                              { description: 'Netflix', amount: 15, category: 'Entertainment', date: new Date(Date.now() - 10 * 86400000).toISOString() },
-                              { description: 'Gas', amount: 40, category: 'Transport', date: new Date(Date.now() - 12 * 86400000).toISOString() },
-                              { description: 'Electric Bill', amount: 90, category: 'Utilities', date: new Date(Date.now() - 15 * 86400000).toISOString() },
-                              { description: 'Restaurant', amount: 65, category: 'Food', date: new Date(Date.now() - 18 * 86400000).toISOString() }
-                            ];
-                            for (const exp of sampleData) {
-                              await axios.post(`${apiUrl}/expenses`, exp, { headers: { Authorization: `Bearer ${token}` } });
-                            }
-                            window.location.reload();
-                          } catch (err) {
-                            console.error('Failed to load sample data', err);
-                          }
-                        }}
-                        className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-semibold transition"
+                      <p className="text-gray-500">No expenses recorded yet.</p>
+                      <Link
+                        href="/expenses"
+                        className="inline-block px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-semibold transition"
                       >
-                        Load Sample Data
-                      </button>
+                        Add First Expense
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -385,38 +338,38 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-xs opacity-70 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-white/20">
-                  <span>●●●● ●●●● ●●●● 4242</span>
-                  <span>VISA</span>
+                  <span>Wallet Balance</span>
+                  <span>PRIMARY</span>
                 </div>
               </motion.div>
 
               {/* Quick Transfer */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
                 className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100"
               >
-                <h3 className="font-poppins font-bold text-base sm:text-lg text-gray-900 mb-4">Quick Transfer</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-xs sm:text-sm font-medium text-gray-700">Debit</p>
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center space-x-2">
-                        <div className="w-6 h-4 rounded bg-red-500"></div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-900">Debit</span>
-                      </span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-900">$10,431</span>
-                    </div>
-                  </div>
-                  <input
-                    type="number"
-                    placeholder="Enter amount"
-                    className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg font-inter text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition"
-                  />
-                  <button className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition duration-200 text-sm">
-                    Send Money
-                  </button>
+                <h3 className="font-poppins font-bold text-base sm:text-lg text-gray-900 mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <Link
+                    href="/expenses"
+                    className="w-full py-2 px-3 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-semibold transition text-sm text-center"
+                  >
+                    + Add Expense
+                  </Link>
+                  <Link
+                    href="/budgets"
+                    className="w-full py-2 px-3 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg font-semibold transition text-sm text-center"
+                  >
+                    + Create Budget
+                  </Link>
+                  <Link
+                    href="/analytics"
+                    className="w-full py-2 px-3 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg font-semibold transition text-sm text-center"
+                  >
+                    View Analytics
+                  </Link>
                 </div>
               </motion.div>
 

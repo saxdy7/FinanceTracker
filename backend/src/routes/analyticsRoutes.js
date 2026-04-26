@@ -1,12 +1,12 @@
 // Analytics Routes for spending insights and financial analysis
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const Expense = require('../models/Expense');
 const Budget = require('../models/Budget');
 
 // GET /api/v1/analytics/overview - Get spending overview
-router.get('/overview', authMiddleware, async (req, res) => {
+router.get('/overview', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const currentDate = new Date();
@@ -50,7 +50,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/analytics/trends - Get spending trends
-router.get('/trends', authMiddleware, async (req, res) => {
+router.get('/trends', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { months = 6 } = req.query;
@@ -86,7 +86,7 @@ router.get('/trends', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/analytics/category-breakdown - Get category breakdown
-router.get('/category-breakdown', authMiddleware, async (req, res) => {
+router.get('/category-breakdown', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { startDate, endDate } = req.query;
@@ -121,7 +121,7 @@ router.get('/category-breakdown', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/analytics/budget-vs-actual - Compare budgets with actual spending
-router.get('/budget-vs-actual', authMiddleware, async (req, res) => {
+router.get('/budget-vs-actual', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const budgets = await Budget.find({ userId: userId });
@@ -162,7 +162,7 @@ router.get('/budget-vs-actual', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/analytics/recommendations - Get AI-powered recommendations
-router.get('/recommendations', authMiddleware, async (req, res) => {
+router.get('/recommendations', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const expenses = await Expense.find({ userId: userId });
@@ -242,7 +242,7 @@ router.get('/recommendations', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/analytics/comparison - Compare spending periods
-router.get('/comparison', authMiddleware, async (req, res) => {
+router.get('/comparison', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const currentDate = new Date();

@@ -1,11 +1,11 @@
 // Notification Routes
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const Notification = require('../models/Notification');
 
 // GET /api/v1/notifications - Get all notifications for user
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { unread = false } = req.query;
@@ -33,7 +33,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /api/v1/notifications - Create notification
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const { title, message, type, category, data } = req.body;
     const userId = req.user.id;
@@ -60,7 +60,7 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // PATCH /api/v1/notifications/:id - Mark as read
-router.patch('/:id', authMiddleware, async (req, res) => {
+router.patch('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { read } = req.body;
@@ -87,7 +87,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 });
 
 // DELETE /api/v1/notifications/:id - Delete notification
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -112,7 +112,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 });
 
 // PATCH /api/v1/notifications - Mark all as read
-router.patch('/', authMiddleware, async (req, res) => {
+router.patch('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -132,7 +132,7 @@ router.patch('/', authMiddleware, async (req, res) => {
 });
 
 // DELETE /api/v1/notifications - Delete all notifications
-router.delete('/', authMiddleware, async (req, res) => {
+router.delete('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -149,7 +149,7 @@ router.delete('/', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/notifications/count - Get unread count
-router.get('/count', authMiddleware, async (req, res) => {
+router.get('/count', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const unreadCount = await Notification.countDocuments({ userId, read: false });
