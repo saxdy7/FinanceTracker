@@ -1,13 +1,19 @@
 {
   "version": 2,
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "npm install --legacy-peer-deps",
   "builds": [
-    {
-      "src": "backend/package.json",
-      "use": "@vercel/node@2.15.0"
-    },
     {
       "src": "frontend/next.config.js",
       "use": "@vercel/next@4.2.3"
+    },
+    {
+      "src": "backend/package.json",
+      "use": "@vercel/node@2.15.0",
+      "config": {
+        "zeroConfig": true
+      }
     }
   ],
   "routes": [
@@ -17,7 +23,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "frontend"
+      "dest": "frontend/.next"
     }
   ]
 }
