@@ -7,12 +7,7 @@
     },
     {
       "src": "frontend/next.config.js",
-      "use": "@vercel/next@4.2.3",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "memory": 1024,
-        "duration": 30
-      }
+      "use": "@vercel/next@4.2.3"
     }
   ],
   "routes": [
@@ -24,6 +19,5 @@
       "src": "/(.*)",
       "dest": "frontend"
     }
-  ],
-  "outputDirectory": "frontend/.next"
+  ]
 }
