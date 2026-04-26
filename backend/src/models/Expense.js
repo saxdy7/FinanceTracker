@@ -48,8 +48,15 @@ const expenseSchema = new mongoose.Schema({
   },
   recurringFrequency: {
     type: String,
-    enum: ['daily', 'weekly', 'monthly', 'yearly', null],
-    default: null
+    default: null,
+    validate: {
+      validator: function (v) {
+        // Allow null/undefined OR one of the valid frequency strings
+        if (v == null) return true;
+        return ['daily', 'weekly', 'monthly', 'yearly'].includes(v);
+      },
+      message: props => `'${props.value}' is not a valid recurringFrequency`
+    }
   },
   createdAt: {
     type: Date,
