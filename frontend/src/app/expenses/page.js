@@ -97,7 +97,8 @@ export default function ExpensesPage() {
       });
     } catch (error) {
       console.error('Error adding expense:', error);
-      alert('Error adding expense');
+      const msg = error?.response?.data?.message || 'Error adding expense. Please check all fields.';
+      alert(msg);
     }
   };
 

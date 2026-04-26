@@ -43,13 +43,24 @@ router.post('/', verifyToken, async (req, res) => {
   try {
     const { description, amount, category, date, paymentMethod, bankAccountId, bankAccountName, tags, notes } = req.body;
 
+    if (!description || !amount || !category) {
+      return res.status(400).json({ message: 'description, amount and category are required' });
+    }
+
+    // Normalise category to lowercase to match enum
+    const normalisedCategory = category.toLowerCase();
+    const allowedCategories = ['food', 'transport', 'entertainment', 'utilities', 'healthcare', 'shopping', 'education', 'other'];
+    if (!allowedCategories.includes(normalisedCategory)) {
+      return res.status(400).json({ message: `Invalid category "${category}". Must be one of: ${allowedCategories.join(', ')}` });
+    }
+
     const expense = new Expense({
       userId: req.user.id,
       description,
-      amount,
-      category: category ? category.toLowerCase() : category, // normalise casing
-      date,
-      paymentMethod,
+      amount: parseFloat(amount),
+      category: normalisedCategory,
+      date: date || Date.now(),
+      paymentMethod: paymentMethod || 'cash',
       bankAccountId: bankAccountId || null,
       bankAccountName: bankAccountName || null,
       tags,
@@ -59,6 +70,11 @@ router.post('/', verifyToken, async (req, res) => {
     await expense.save();
     res.status(201).json({ message: 'Expense created', expense });
   } catch (error) {
+    // Mongoose validation error - return 400 with useful message
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ message: messages.join(', ') });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
