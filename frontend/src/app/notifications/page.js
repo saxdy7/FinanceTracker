@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Bell, Search, Filter, Trash2, CheckCircle, Info, AlertTriangle, Archive, X, AlertCircle, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, Settings, LogOut, TrendingUp } from 'lucide-react';
+import { Bell, Search, Filter, Trash2, CheckCircle, Info, AlertTriangle, Archive, X, AlertCircle, LayoutGrid, FileText, MessageSquare, Wallet, Activity, BarChart3, Settings, LogOut, TrendingUp, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
