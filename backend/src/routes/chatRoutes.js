@@ -3,8 +3,9 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/authMiddleware');
 const groqService = require('../services/groqService');
+const Chat = require('../models/Chat');
 
-// POST /api/v1/chat - Send message to Groq AI
+// POST /api/v1/chat - Send message to Groq AI and save to DB
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { message } = req.body;
@@ -15,13 +16,24 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     // Get user context for personalized advice
-    const userContext = {
-      userId: userId,
-      timestamp: new Date()
-    };
+    const userContext = { userId, timestamp: new Date() };
 
     // Get financial advice from Groq
     const response = await groqService.getFinancialAdvice(message, userContext);
+
+    // Save the conversation to MongoDB
+    try {
+      await Chat.create({
+        userId,
+        messages: [
+          { role: 'user', content: message },
+          { role: 'assistant', content: response.advice || 'Unable to generate advice.' }
+        ]
+      });
+    } catch (dbErr) {
+      // Non-fatal: log but still return the AI response even if DB save fails
+      console.error('Chat DB save error:', dbErr.message);
+    }
 
     res.json({
       success: response.success,
@@ -32,6 +44,18 @@ router.post('/', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Chat Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/v1/chat/history - Get past chat sessions for this user
+router.get('/history', verifyToken, async (req, res) => {
+  try {
+    const chats = await Chat.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json({ success: true, chats });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
