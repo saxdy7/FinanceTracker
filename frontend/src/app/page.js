@@ -482,7 +482,7 @@ export default function HomePage() {
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">Take control of your finances.<br />Made with ❤️ for India.</p>
             </div>
-            <div>
+            {/* <div>
               <h4 className="font-semibold text-sm mb-4 text-gray-300 uppercase tracking-wide">Product</h4>
               <ul className="space-y-2.5 text-sm text-gray-500">
                 {['Features', 'Security', 'Dashboard'].map(l => (
@@ -505,7 +505,7 @@ export default function HomePage() {
                   <li key={l}><a href="#" className="hover:text-white transition">{l}</a></li>
                 ))}
               </ul>
-            </div>
+            </div> */}
           </div>
           <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-gray-500 text-sm">© 2026 FinanceTracker. All rights reserved.</p>
