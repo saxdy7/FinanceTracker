@@ -484,9 +484,9 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold text-sm mb-4 text-gray-300 uppercase tracking-wide">Company</h4>
               <ul className="space-y-2.5 text-sm text-gray-500">
-                {['About', 'Blog', 'Contact'].map(l => (
-                  <li key={l}><a href="#" className="hover:text-white transition">{l}</a></li>
-                ))}
+                <li><Link href="/about" className="hover:text-white transition">About</Link></li>
+                <li><Link href="/blog" className="hover:text-white transition">Blog</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition">Contact</Link></li>
               </ul>
             </div>
             <div>
