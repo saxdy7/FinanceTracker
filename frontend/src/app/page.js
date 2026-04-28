@@ -18,7 +18,7 @@ const fadeUp = (delay = 0) => ({
 
 const features = [
   { icon: PieChart,     title: 'Smart Expense Tracking',   description: 'Automatically categorise every rupee spent with intelligent insights and real-time dashboards.', color: 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' },
-  { icon: Target,       title: 'Flexible Budgets',         description: 'Create custom ₹ budgets per category and get instant alerts before you overspend.',               color: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white' },
+  { icon: Target,       title: 'Flexible Budgets',         description: 'Create custom ₹ budgets per cat                                                                      egory and get instant alerts before you overspend.',               color: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white' },
   { icon: BarChart3,    title: 'Advanced Analytics',       description: 'Beautiful visualisations of your spending patterns across days, weeks and months.',                color: 'bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white' },
   { icon: Brain,        title: 'AI Financial Advisor',     description: 'Get personalised recommendations powered by your own spending data in Indian Rupees.',             color: 'bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' },
   { icon: Bell,         title: 'Smart Notifications',      description: 'Get alerted for unusual spending, budget limits, and important financial milestones.',              color: 'bg-pink-50 text-pink-600 group-hover:bg-pink-600 group-hover:text-white' },
@@ -469,7 +469,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* ── FOOTER ── */}
+      {/* ── FOOTER ── 
       <footer className="bg-gray-950 text-white px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -513,6 +513,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      */}
     </div>
   );
 }
