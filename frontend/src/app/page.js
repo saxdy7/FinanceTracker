@@ -469,7 +469,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* ── FOOTER ── 
+      {/* ── FOOTER ── */}
       <footer className="bg-gray-950 text-white px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -513,7 +513,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-      */}
     </div>
   );
 }
