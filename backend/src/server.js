@@ -72,6 +72,7 @@ app.use('/api/v1/email', require('./routes/emailRoutes'));
 app.use('/api/v1/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/v1/export', require('./routes/exportRoutes'));
 app.use('/api/v1/notifications', require('./routes/notificationRoutes'));
+app.use('/api/v1/contact', require('./routes/contactRoutes'));
 
 // Health Check Route
 app.get('/api/v1/health', (req, res) => {

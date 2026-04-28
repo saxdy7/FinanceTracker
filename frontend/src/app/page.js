@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   TrendingUp, ArrowRight, PieChart, Target, Zap, Shield,
   CheckCircle2, BarChart3, Smartphone, Plus, Minus,
@@ -263,7 +264,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section className="px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-gray-50">
+      <section id="features" className="px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <motion.div {...fadeUp(0)} className="text-center mb-16 space-y-3">
             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">Features</span>
@@ -291,7 +292,7 @@ export default function HomePage() {
       </section>
 
       {/* ── SECURITY BANNER ── */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20">
+      <section id="security" className="px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-5xl mx-auto">
           <motion.div
             {...fadeUp(0)}
@@ -472,13 +473,13 @@ export default function HomePage() {
       {/* ── FOOTER ── */}
       <footer className="bg-gray-950 text-white px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto">
-          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 text-center md:text-left">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 text-center md:text-left">
             <div>
               <h4 className="font-semibold text-sm mb-4 text-gray-300 uppercase tracking-wide">Product</h4>
               <ul className="space-y-2.5 text-sm text-gray-500">
-                {['Features', 'Security', 'Dashboard'].map(l => (
-                  <li key={l}><a href="#" className="hover:text-white transition">{l}</a></li>
-                ))}
+                <li><a href="#features" className="hover:text-white transition">Features</a></li>
+                <li><a href="#security" className="hover:text-white transition">Security</a></li>
+                <li><Link href="/dashboard" className="hover:text-white transition">Dashboard</Link></li>
               </ul>
             </div>
             <div>
@@ -492,12 +493,12 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold text-sm mb-4 text-gray-300 uppercase tracking-wide">Legal</h4>
               <ul className="space-y-2.5 text-sm text-gray-500">
-                {['Privacy', 'Terms', 'Cookie Policy'].map(l => (
-                  <li key={l}><a href="#" className="hover:text-white transition">{l}</a></li>
-                ))}
+                <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
+                <li><Link href="/cookie-policy" className="hover:text-white transition">Cookie Policy</Link></li>
               </ul>
             </div>
-          </div> */}
+          </div> 
           <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">

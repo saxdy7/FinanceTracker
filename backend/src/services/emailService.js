@@ -161,6 +161,60 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+
+  async sendContactFormSubmission(contactData) {
+    const { name, email, subject, message } = contactData;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+
+    const htmlContent = `
+      <h2>New Contact Form Submission 📨</h2>
+      <p><strong>From:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <h3>Message:</h3>
+      <p>${message}</p>
+      <hr>
+      <p><small>This message was sent from FinanceTracker contact form</small></p>
+    `;
+
+    // Send to admin
+    try {
+      await this.transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: adminEmail,
+        subject: `New Contact Form: ${subject}`,
+        html: htmlContent,
+        replyTo: email
+      });
+    } catch (error) {
+      console.error('Error sending admin email:', error);
+      throw error;
+    }
+
+    // Send confirmation to user
+    const confirmationHtml = `
+      <h2>Thank You for Contacting FinanceTracker! 🙏</h2>
+      <p>Hi ${name},</p>
+      <p>We received your message and will get back to you as soon as possible.</p>
+      <h3>Your Message:</h3>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <p>${message}</p>
+      <p>Best regards,<br>FinanceTracker Team</p>
+    `;
+
+    try {
+      await this.transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'We received your message - FinanceTracker',
+        html: confirmationHtml
+      });
+      return { success: true, message: 'Contact form received' };
+    } catch (error) {
+      console.error('Error sending confirmation email:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 module.exports = new EmailService();
