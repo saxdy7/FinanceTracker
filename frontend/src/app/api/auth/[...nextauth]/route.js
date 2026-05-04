@@ -52,7 +52,8 @@ const handler = NextAuth({
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/google`, {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+          const res = await fetch(`${apiUrl}/api/v1/auth/google`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -64,12 +65,20 @@ const handler = NextAuth({
           });
 
           const data = await res.json();
-          if (res.ok) {
+
+          if (res.ok && data.user && data.token) {
             user.id = data.user.id;
+            user.email = data.user.email;
             user.token = data.token;
+            user.name = data.user.firstName + ' ' + data.user.lastName;
+            return true;
+          } else {
+            console.error('Google signin backend error:', data);
+            return false;
           }
         } catch (error) {
           console.error('Google sign-in error:', error);
+          return false;
         }
       }
       return true;

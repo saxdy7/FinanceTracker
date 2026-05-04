@@ -35,21 +35,53 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const result = await signIn('google', {
-      redirect: false,
-      callbackUrl: '/dashboard'
-    });
+    setError('');
+    try {
+      const result = await signIn('google', {
+        redirect: false,
+        callbackUrl: '/dashboard'
+      });
 
-    if (result?.error) {
-      setError(result.error);
-    } else if (result?.ok) {
-      router.push('/dashboard');
+      if (result?.error) {
+        setError(result.error || 'Google sign-in failed');
+        setLoading(false);
+      } else if (result?.ok) {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError('Failed to sign in with Google');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
+      {/* Loading Popup */}
+      {loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-sm mx-4"
+          >
+            <div className="flex justify-center mb-4">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full"
+              />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Signing you in...</h3>
+            <p className="text-gray-600 text-sm">Please wait while we authenticate your account</p>
+          </motion.div>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
