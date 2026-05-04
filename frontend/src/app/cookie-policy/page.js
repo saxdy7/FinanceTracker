@@ -78,7 +78,7 @@ export default function CookiePolicyPage() {
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Contact Us</h2>
               <p>
-                If you have any questions about our Cookie Policy, please contact us at support@financetracker.app
+                If you have any questions about our Cookie Policy, please contact us at <a href="mailto:mamidalasandeep5@gmail.com" className="text-blue-600 hover:underline">mamidalasandeep5@gmail.com</a>
               </p>
             </section>
 

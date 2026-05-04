@@ -52,7 +52,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Disclaimer</h2>
               <p>
-               <a href="mailto:mamidalasandeep5@gmail.com" className="text-blue-600 hover:underline">mamidalasandeep5@gmail.com</a>kes no warranties, expressed or
+                The materials on FinanceTracker are provided on an 'as is' basis. FinanceTracker makes no warranties, expressed or
                 implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or
                 conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or
                 other violation of rights.
@@ -80,7 +80,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Contact Us</h2>
               <p>
-                If you have any questions about these Terms and Conditions, please contact us at support@financetracker.app
+                If you have any questions about these Terms and Conditions, please contact us at <a href="mailto:mamidalasandeep5@gmail.com" className="text-blue-600 hover:underline">mamidalasandeep5@gmail.com</a>
               </p>
             </section>
 
