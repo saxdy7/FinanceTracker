@@ -52,7 +52,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Disclaimer</h2>
               <p>
-                The materials on FinanceTracker are provided on an 'as is' basis. FinanceTracker makes no warranties, expressed or
+               <a href="mailto:mamidalasandeep5@gmail.com" className="text-blue-600 hover:underline">mamidalasandeep5@gmail.com</a>kes no warranties, expressed or
                 implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or
                 conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or
                 other violation of rights.
