@@ -79,7 +79,7 @@ export default function ContactPage() {
                 <Mail className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Email</h3>
-                  <p className="text-gray-600">support@financetracker.app</p>
+                  <p className="text-gray-600">mamidalasandeep5@gmail.com</p>
                 </div>
               </div>
 
@@ -87,7 +87,7 @@ export default function ContactPage() {
                 <Phone className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+91 (123) 456-7890</p>
+                  <p className="text-gray-600">+91 9493763769</p>
                 </div>
               </div>
 
