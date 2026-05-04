@@ -247,4 +247,55 @@ router.post('/send-verification-email', [
   }
 });
 
+// Google OAuth
+router.post('/google', [
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('name').notEmpty().withMessage('Name is required'),
+  body('googleId').notEmpty().withMessage('Google ID is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, name, image, googleId } = req.body;
+    const [firstName, lastName] = name.split(' ');
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user from Google
+      user = new User({
+        firstName: firstName || name,
+        lastName: lastName || '',
+        email,
+        profilePicture: image,
+        password: Math.random().toString(36).substring(2, 15), // Random password for OAuth
+        isVerified: true // Google users are pre-verified
+      });
+      await user.save();
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    res.status(200).json({
+      message: 'Google login successful',
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        isVerified: user.isVerified
+      },
+      token
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;
