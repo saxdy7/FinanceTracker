@@ -263,7 +263,9 @@ router.post('/google', [
     }
 
     const { email, name, image, googleId } = req.body;
-    const [firstName, lastName] = name.split(' ');
+    const nameParts = name.split(' ');
+    const firstName = nameParts[0] || 'Google';
+    const lastName = nameParts.slice(1).join(' ') || 'User';
 
     console.log('📝 Processing Google User:', { firstName, lastName, email, googleId });
 
@@ -274,8 +276,8 @@ router.post('/google', [
     if (!user) {
       // Create new user from Google
       user = new User({
-        firstName: firstName || name,
-        lastName: lastName || '',
+        firstName: firstName,
+        lastName: lastName,
         email,
         profilePicture: image,
         password: Math.random().toString(36).substring(2, 15),
