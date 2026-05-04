@@ -19,16 +19,25 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false
-    });
+    try {
+      // Call backend directly so we get the token to store in localStorage
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
 
-    if (result?.error) {
-      setError(result.error || 'Login failed');
-    } else if (result?.ok) {
-      router.push('/dashboard');
+      if (res.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/dashboard');
+      } else {
+        setError(data.message || 'Invalid email or password');
+      }
+    } catch (err) {
+      setError('Could not connect to server. Please try again.');
     }
     setLoading(false);
   };
@@ -36,22 +45,12 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError('');
-    try {
-      const result = await signIn('google', {
-        redirect: false,
-        callbackUrl: '/dashboard'
-      });
-
-      if (result?.error) {
-        setError(result.error || 'Google sign-in failed');
-        setLoading(false);
-      } else if (result?.ok) {
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      setError('Failed to sign in with Google');
-      setLoading(false);
-    }
+    // Use full-page redirect — NextAuth will handle the callback and
+    // SessionSync will store the token in localStorage after return.
+    await signIn('google', { callbackUrl: '/dashboard' });
+    // Note: execution continues only if the user cancels / there's an error
+    // before the redirect, so we reset loading as a safety net.
+    setLoading(false);
   };
 
   return (

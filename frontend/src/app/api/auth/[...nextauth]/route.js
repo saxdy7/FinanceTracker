@@ -16,7 +16,9 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
+          // NEXT_PUBLIC_API_URL already includes /api/v1
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+          const res = await fetch(`${apiUrl}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -27,12 +29,15 @@ const handler = NextAuth({
 
           const data = await res.json();
 
-          if (res.ok && data.user) {
+          if (res.ok && data.user && data.token) {
             return {
               id: data.user.id,
               email: data.user.email,
-              name: data.user.firstName + ' ' + data.user.lastName,
-              image: data.user.profilePicture,
+              name: `${data.user.firstName} ${data.user.lastName}`,
+              firstName: data.user.firstName,
+              lastName: data.user.lastName,
+              role: data.user.role,
+              image: data.user.profilePicture || null,
               token: data.token
             };
           }
@@ -52,8 +57,9 @@ const handler = NextAuth({
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-          const res = await fetch(`${apiUrl}/api/v1/auth/google`, {
+          // NEXT_PUBLIC_API_URL already includes /api/v1
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+          const res = await fetch(`${apiUrl}/auth/google`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -67,10 +73,14 @@ const handler = NextAuth({
           const data = await res.json();
 
           if (res.ok && data.user && data.token) {
+            // Attach backend data to the user object (passed to jwt callback)
             user.id = data.user.id;
             user.email = data.user.email;
             user.token = data.token;
-            user.name = data.user.firstName + ' ' + data.user.lastName;
+            user.firstName = data.user.firstName;
+            user.lastName = data.user.lastName;
+            user.role = data.user.role;
+            user.name = `${data.user.firstName} ${data.user.lastName}`;
             return true;
           } else {
             console.error('Google signin backend error:', data);
@@ -83,16 +93,26 @@ const handler = NextAuth({
       }
       return true;
     },
+
     async jwt({ token, user }) {
+      // Persist extra fields when user first signs in
       if (user) {
         token.id = user.id;
         token.token = user.token;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.role = user.role;
       }
       return token;
     },
+
     async session({ session, token }) {
+      // Expose all fields to the client session
       session.user.id = token.id;
       session.user.token = token.token;
+      session.user.firstName = token.firstName;
+      session.user.lastName = token.lastName;
+      session.user.role = token.role;
       return session;
     }
   },

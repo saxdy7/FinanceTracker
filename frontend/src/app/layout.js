@@ -1,6 +1,7 @@
 import { Inter, Poppins } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/AuthProvider';
+import SessionSync from '@/components/SessionSync';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,6 +26,8 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>
+          {/* Syncs NextAuth session (Google OAuth) token → localStorage */}
+          <SessionSync />
           <main>{children}</main>
         </AuthProvider>
       </body>
