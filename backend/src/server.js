@@ -75,8 +75,25 @@ app.use('/api/v1/notifications', require('./routes/notificationRoutes'));
 app.use('/api/v1/contact', require('./routes/contactRoutes'));
 
 // Health Check Route
-app.get('/api/v1/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Server is running' });
+app.get('/api/v1/health', async (req, res) => {
+  try {
+    const mongooseState = require('mongoose').connection.readyState;
+    const mongoStatus = mongooseState === 1 ? 'connected' : 'disconnected';
+
+    res.status(200).json({
+      status: 'OK',
+      message: 'Server is running',
+      mongodb: mongoStatus,
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Server error',
+      error: error.message
+    });
+  }
 });
 
 // Socket.IO Connection

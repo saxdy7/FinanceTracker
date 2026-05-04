@@ -254,16 +254,22 @@ router.post('/google', [
   body('googleId').notEmpty().withMessage('Google ID is required')
 ], async (req, res) => {
   try {
+    console.log('🔐 Google Auth Request:', { email: req.body.email, name: req.body.name });
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation Error:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
     const { email, name, image, googleId } = req.body;
     const [firstName, lastName] = name.split(' ');
 
+    console.log('📝 Processing Google User:', { firstName, lastName, email, googleId });
+
     // Check if user exists
     let user = await User.findOne({ email });
+    console.log('🔍 User Found:', user ? 'YES' : 'NO (creating new)');
 
     if (!user) {
       // Create new user from Google
@@ -272,15 +278,18 @@ router.post('/google', [
         lastName: lastName || '',
         email,
         profilePicture: image,
-        password: Math.random().toString(36).substring(2, 15), // Random password for OAuth
-        isVerified: true // Google users are pre-verified
+        password: Math.random().toString(36).substring(2, 15),
+        isVerified: true
       });
+      console.log('💾 Saving New User:', user);
       await user.save();
+      console.log('✅ User Saved:', user._id);
     }
 
     const token = generateToken(user._id, user.role);
+    console.log('🔑 Token Generated:', token.substring(0, 20) + '...');
 
-    res.status(200).json({
+    const response = {
       message: 'Google login successful',
       user: {
         id: user._id,
@@ -292,9 +301,18 @@ router.post('/google', [
         isVerified: user.isVerified
       },
       token
-    });
+    };
+
+    console.log('✅ Google Auth Success:', response.user.id);
+    res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('❌ Google Auth Error:', error.message);
+    console.error('Error Stack:', error.stack);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
