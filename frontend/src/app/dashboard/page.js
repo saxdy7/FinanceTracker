@@ -108,7 +108,12 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async (token) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const defaultUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://financetracker-backend.onrender.com' 
+        : 'http://localhost:5000';
+      const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
+      const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
+      
       const [expRes, budgetRes] = await Promise.all([
         axios.get(`${apiUrl}/expenses?limit=2000`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${apiUrl}/budgets`,              { headers: { Authorization: `Bearer ${token}` } })

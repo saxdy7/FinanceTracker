@@ -16,7 +16,10 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+          const defaultUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://financetracker-backend.onrender.com' 
+            : 'http://localhost:5000';
+          const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
           const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
           const res = await fetch(`${apiUrl}/auth/login`, {
             method: 'POST',
@@ -59,7 +62,10 @@ const handler = NextAuth({
       if (account && user) {
         if (account.provider === 'google') {
           try {
-            const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const defaultUrl = process.env.NODE_ENV === 'production' 
+              ? 'https://financetracker-backend.onrender.com' 
+              : 'http://localhost:5000';
+            const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
             const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
             
             const res = await fetch(`${apiUrl}/auth/google`, {
