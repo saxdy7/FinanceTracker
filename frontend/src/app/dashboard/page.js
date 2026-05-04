@@ -61,7 +61,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState(null);
   const [expenses, setExpenses] = useState([]);
@@ -73,13 +73,38 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (status === 'loading') return; // Wait for NextAuth to sync token before redirecting
-    const token = localStorage.getItem('token');
-    if (!token) { router.push('/login'); return; }
+    if (status === 'loading') return;
+    
+    // First try to get token from localStorage (standard flow)
+    let token = localStorage.getItem('token');
+    
+    // If not in localStorage yet, but NextAuth is authenticated, grab it from session
+    // (This handles the race condition where dashboard renders before SessionSync finishes writing)
+    if (!token && status === 'authenticated' && session?.user?.token) {
+      token = session.user.token;
+      localStorage.setItem('token', token);
+      
+      const nameParts = (session.user.name || '').split(' ');
+      const userObj = {
+        id: session.user.id || '',
+        firstName: session.user.firstName || nameParts[0] || '',
+        lastName: session.user.lastName || nameParts.slice(1).join(' ') || '',
+        email: session.user.email || '',
+        role: session.user.role || 'user',
+        profilePicture: session.user.image || '',
+      };
+      localStorage.setItem('user', JSON.stringify(userObj));
+    }
+
+    if (!token) { 
+      router.push('/login'); 
+      return; 
+    }
+    
     const userData = localStorage.getItem('user');
     if (userData) setUser(JSON.parse(userData));
     fetchDashboardData(token);
-  }, [router, status]);
+  }, [router, status, session]);
 
   const fetchDashboardData = async (token) => {
     try {
