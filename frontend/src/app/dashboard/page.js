@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -60,8 +61,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { status } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [spendingData, setSpendingData] = useState([]);
   const [areaData, setAreaData] = useState([]);
@@ -71,12 +73,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
+    if (status === 'loading') return; // Wait for NextAuth to sync token before redirecting
     const token = localStorage.getItem('token');
     if (!token) { router.push('/login'); return; }
     const userData = localStorage.getItem('user');
     if (userData) setUser(JSON.parse(userData));
     fetchDashboardData(token);
-  }, [router]);
+  }, [router, status]);
 
   const fetchDashboardData = async (token) => {
     try {

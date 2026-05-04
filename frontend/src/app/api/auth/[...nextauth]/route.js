@@ -54,65 +54,60 @@ const handler = NextAuth({
     error: '/login'
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === 'google') {
-        try {
-          const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-          const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
-          const res = await fetch(`${apiUrl}/auth/google`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              googleId: profile.sub
-            })
-          });
+    async jwt({ token, user, account, profile }) {
+      // This block only runs on the very first sign-in (when user and account are present)
+      if (account && user) {
+        if (account.provider === 'google') {
+          try {
+            const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
+            
+            const res = await fetch(`${apiUrl}/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: user.email,
+                name: user.name || profile?.name || 'Google User',
+                image: user.image || profile?.picture || '',
+                googleId: account.providerAccountId
+              })
+            });
 
-          const data = await res.json();
+            const data = await res.json();
 
-          if (res.ok && data.user && data.token) {
-            // Attach backend data to the user object (passed to jwt callback)
-            user.id = data.user.id;
-            user.email = data.user.email;
-            user.token = data.token;
-            user.firstName = data.user.firstName;
-            user.lastName = data.user.lastName;
-            user.role = data.user.role;
-            user.name = `${data.user.firstName} ${data.user.lastName}`;
-            return true;
-          } else {
-            console.error('Google signin backend error:', data);
-            return false;
+            if (res.ok && data.user && data.token) {
+              token.id = data.user.id;
+              token.token = data.token;
+              token.firstName = data.user.firstName;
+              token.lastName = data.user.lastName;
+              token.role = data.user.role;
+            } else {
+              console.error('Google signin backend error:', data);
+              // Fallback if backend fails, but token won't be set
+            }
+          } catch (error) {
+            console.error('Google sign-in sync error:', error);
           }
-        } catch (error) {
-          console.error('Google sign-in error:', error);
-          return false;
+        } else if (account.provider === 'credentials') {
+          token.id = user.id;
+          token.token = user.token;
+          token.firstName = user.firstName;
+          token.lastName = user.lastName;
+          token.role = user.role;
         }
-      }
-      return true;
-    },
-
-    async jwt({ token, user }) {
-      // Persist extra fields when user first signs in
-      if (user) {
-        token.id = user.id;
-        token.token = user.token;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.role = user.role;
       }
       return token;
     },
 
     async session({ session, token }) {
       // Expose all fields to the client session
-      session.user.id = token.id;
-      session.user.token = token.token;
-      session.user.firstName = token.firstName;
-      session.user.lastName = token.lastName;
-      session.user.role = token.role;
+      if (token && session.user) {
+        session.user.id = token.id;
+        session.user.token = token.token;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
+        session.user.role = token.role;
+      }
       return session;
     }
   },

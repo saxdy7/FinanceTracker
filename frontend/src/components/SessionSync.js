@@ -35,11 +35,13 @@ export default function SessionSync() {
           profilePicture: session.user.image || '',
         };
         localStorage.setItem('user', JSON.stringify(user));
+      }
 
-        // If we're on /login or /register after Google OAuth, redirect to dashboard
-        if (pathname === '/login' || pathname === '/register') {
-          router.replace('/dashboard');
-        }
+      // If we're on /login or /register after Google OAuth, redirect to dashboard.
+      // This is outside the token check to handle race conditions where a protected
+      // page might have bounced the user back to /login before SessionSync finished.
+      if (pathname === '/login' || pathname === '/register') {
+        router.replace('/dashboard');
       }
     }
   }, [session, status, pathname, router]);
