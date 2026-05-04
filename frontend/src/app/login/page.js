@@ -40,7 +40,12 @@ export default function LoginPage() {
         setError(data.message || 'Invalid email or password');
       }
     } catch (err) {
-      setError('Could not connect to server. Please try again.');
+      const defaultUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://financetracker-backend.onrender.com' 
+        : 'http://localhost:5000';
+      const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
+      const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
+      setError(`Could not connect to server (${apiUrl}). Please try again.`);
     }
     setLoading(false);
   };
