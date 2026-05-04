@@ -20,8 +20,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Call backend directly so we get the token to store in localStorage
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
       const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

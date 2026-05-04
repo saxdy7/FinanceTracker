@@ -22,8 +22,9 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/contact/submit`,
+        `${baseUrl}/api/v1/contact/submit`,
         {
           method: 'POST',
           headers: {
