@@ -1,6 +1,7 @@
 const express = require('express');
 const Expense = require('../models/Expense');
 const { verifyToken } = require('../middleware/authMiddleware');
+const { createNotification } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -68,6 +69,18 @@ router.post('/', verifyToken, async (req, res) => {
     });
 
     await expense.save();
+
+    // 🔔 Auto-notification
+    const io = req.app.get('io');
+    await createNotification({
+      userId: req.user.id,
+      title: '💸 New Expense Added',
+      message: `₹${parseFloat(amount).toLocaleString('en-IN')} spent on ${description} (${normalisedCategory})`,
+      type: 'info',
+      category: 'expense',
+      data: { expenseId: expense._id, amount, category: normalisedCategory }
+    }, io);
+
     res.status(201).json({ message: 'Expense created', expense });
   } catch (error) {
     // Mongoose validation error - return 400 with useful message
@@ -113,6 +126,17 @@ router.put('/:id', verifyToken, async (req, res) => {
     expense.updatedAt = Date.now();
     await expense.save();
 
+    // 🔔 Auto-notification
+    const io = req.app.get('io');
+    await createNotification({
+      userId: req.user.id,
+      title: '✏️ Expense Updated',
+      message: `${expense.description} updated to ₹${expense.amount.toLocaleString('en-IN')}`,
+      type: 'info',
+      category: 'expense',
+      data: { expenseId: expense._id }
+    }, io);
+
     res.status(200).json({ message: 'Expense updated', expense });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -131,7 +155,21 @@ router.delete('/:id', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    const expDesc = expense.description;
+    const expAmt = expense.amount;
     await Expense.findByIdAndDelete(req.params.id);
+
+    // 🔔 Auto-notification
+    const io = req.app.get('io');
+    await createNotification({
+      userId: req.user.id,
+      title: '🗑️ Expense Deleted',
+      message: `₹${expAmt.toLocaleString('en-IN')} expense "${expDesc}" was removed`,
+      type: 'warning',
+      category: 'expense',
+      data: {}
+    }, io);
+
     res.status(200).json({ message: 'Expense deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -2,6 +2,7 @@ const express = require('express');
 const Budget = require('../models/Budget');
 const Expense = require('../models/Expense');
 const { verifyToken } = require('../middleware/authMiddleware');
+const { createNotification } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -31,6 +32,18 @@ router.post('/', verifyToken, async (req, res) => {
     });
 
     await budget.save();
+
+    // 🔔 Notification
+    const io = req.app.get('io');
+    await createNotification({
+      userId: req.user.id,
+      title: '📊 Budget Created',
+      message: `₹${limit.toLocaleString ? limit.toLocaleString('en-IN') : limit} ${period || 'monthly'} budget set for ${category}`,
+      type: 'success',
+      category: 'budget',
+      data: { budgetId: budget._id, category, limit }
+    }, io);
+
     res.status(201).json({ message: 'Budget created', budget });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -88,6 +101,17 @@ router.put('/:id', verifyToken, async (req, res) => {
     budget.updatedAt = Date.now();
     await budget.save();
 
+    // 🔔 Notification
+    const io = req.app.get('io');
+    await createNotification({
+      userId: req.user.id,
+      title: '✏️ Budget Updated',
+      message: `${budget.category} budget updated to ₹${budget.limit.toLocaleString('en-IN')}`,
+      type: 'info',
+      category: 'budget',
+      data: { budgetId: budget._id }
+    }, io);
+
     res.status(200).json({ message: 'Budget updated', budget });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -106,7 +130,20 @@ router.delete('/:id', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    const budgetCat = budget.category;
     await Budget.findByIdAndDelete(req.params.id);
+
+    // 🔔 Notification
+    const io = req.app.get('io');
+    await createNotification({
+      userId: req.user.id,
+      title: '🗑️ Budget Deleted',
+      message: `Budget for ${budgetCat} category was removed`,
+      type: 'warning',
+      category: 'budget',
+      data: {}
+    }, io);
+
     res.status(200).json({ message: 'Budget deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

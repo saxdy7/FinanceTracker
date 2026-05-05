@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  googleId: {
+    type: String,
+    sparse: true,   // allows null + unique to coexist
+    index: true
+  },
   isVerified: {
     type: Boolean,
     default: false
@@ -85,13 +90,14 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Hash Password Before Saving
+// Hash Password Before Saving — ONLY when password field is actually changed
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
-  }
+  if (!this.isModified('password')) return next();
+  // Don't re-hash if it already looks like a bcrypt hash
+  if (this.password && this.password.startsWith('$2')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 // Compare Password Method

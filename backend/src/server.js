@@ -98,17 +98,28 @@ app.get('/api/v1/health', async (req, res) => {
 
 // Socket.IO Connection
 io.on('connection', (socket) => {
-  console.log('New user connected:', socket.id);
+  console.log('🔌 New socket connected:', socket.id);
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+  // Client sends its userId so we put it in a personal room
+  socket.on('join', (userId) => {
+    if (userId) {
+      socket.join(`user:${userId}`);
+      console.log(`✅ Socket ${socket.id} joined room user:${userId}`);
+    }
   });
 
+  socket.on('disconnect', () => {
+    console.log('🔌 Socket disconnected:', socket.id);
+  });
+
+  // Legacy budget alert broadcast
   socket.on('budget-alert', (data) => {
-    console.log('Budget alert:', data);
     io.emit('budget-notification', data);
   });
 });
+
+// Make io accessible from routes via app.get('io')
+app.set('io', io);
 
 // 404 Handler
 app.use((req, res) => {

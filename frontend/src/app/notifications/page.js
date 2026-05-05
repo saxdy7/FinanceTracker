@@ -1,371 +1,283 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Search, Trash2, CheckCircle, Info, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { Bell, Search, Trash2, CheckCircle, Info, AlertTriangle, XCircle, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 import DashboardLayout from '@/components/DashboardLayout';
-import axios from 'axios';
+import api from '@/utils/api';
 
+const TYPE_ICON = {
+  success:  CheckCircle,
+  info:     Info,
+  warning:  AlertTriangle,
+  error:    XCircle,
+};
 
+const TYPE_STYLE = {
+  success: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  info:    'bg-blue-50   text-blue-700   border-blue-100',
+  warning: 'bg-amber-50  text-amber-700  border-amber-100',
+  error:   'bg-red-50    text-red-700    border-red-100',
+};
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted]           = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [filteredNotifications, setFilteredNotifications] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [showRead, setShowRead] = useState(true);
-  const [socket, setSocket] = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [filterType, setFilterType]     = useState('all');
   const [socketConnected, setSocketConnected] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const socketRef = useRef(null);
 
-  // Initialize Socket.IO connection
+  // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) { router.push('/login'); return; }
 
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-
-    // Load initial notifications
-    fetchNotifications(token);
-
-    // Connect to Socket.IO
-    const socketInstance = io(process.env.NEXT_PUBLIC_API_URL, {
-      auth: { token },
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5
-    });
-
-    // Socket.IO event listeners
-    socketInstance.on('connect', () => {
-      console.log('Connected to notification server');
-      setSocketConnected(true);
-    });
-
-    socketInstance.on('disconnect', () => {
-      console.log('Disconnected from notification server');
-      setSocketConnected(false);
-    });
-
-    socketInstance.on('budget-notification', (data) => {
-      addNotification({
-        id: Date.now(),
-        title: 'Budget Alert',
-        message: data.message,
-        type: 'warning',
-        timestamp: 'just now',
-        read: false,
-        icon: AlertTriangle,
-        category: 'budget'
-      });
-    });
-
-    socketInstance.on('transaction-recorded', (data) => {
-      addNotification({
-        id: Date.now(),
-        title: 'Transaction Recorded',
-        message: data.message,
-        type: 'success',
-        timestamp: 'just now',
-        read: false,
-        icon: CheckCircle,
-        category: 'transaction'
-      });
-    });
-
-    socketInstance.on('expense-alert', (data) => {
-      addNotification({
-        id: Date.now(),
-        title: 'Expense Alert',
-        message: data.message,
-        type: 'warning',
-        timestamp: 'just now',
-        read: false,
-        icon: AlertTriangle,
-        category: 'expense'
-      });
-    });
-
-    socketInstance.on('report-ready', (data) => {
-      addNotification({
-        id: Date.now(),
-        title: 'Report Generated',
-        message: data.message,
-        type: 'info',
-        timestamp: 'just now',
-        read: false,
-        icon: Info,
-        category: 'report'
-      });
-    });
-
-    setSocket(socketInstance);
+    fetchNotifications();
+    connectSocket(token);
 
     return () => {
-      socketInstance.disconnect();
+      if (socketRef.current) socketRef.current.disconnect();
     };
   }, [router]);
 
-  const fetchNotifications = async (token) => {
+  // ── Fetch from DB ─────────────────────────────────────────────────────────
+  const fetchNotifications = async () => {
+    setLoading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await axios.get(`${apiUrl}/notifications`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.notifications) {
-        setNotifications(response.data.notifications);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      // Use default data if API fails
-      setNotifications([
-        {
-          id: 1,
-          title: 'Budget Alert',
-          message: 'You have exceeded your shopping budget by $150',
-          type: 'warning',
-          timestamp: '2 hours ago',
-          read: false,
-          icon: AlertTriangle,
-          category: 'budget'
-        },
-        {
-          id: 2,
-          title: 'Transaction Recorded',
-          message: 'Your payment of $45.50 has been recorded successfully',
-          type: 'success',
-          timestamp: '4 hours ago',
-          read: false,
-          icon: CheckCircle,
-          category: 'transaction'
-        }
-      ]);
+      const res = await api.get('/notifications');
+      setNotifications(res.data.notifications || []);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const addNotification = (newNotification) => {
-    setNotifications(prev => [newNotification, ...prev]);
+  // ── Socket.IO real-time connection ─────────────────────────────────────────
+  const connectSocket = (token) => {
+    const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://financetracker-oejz.onrender.com';
+    const socketUrl = rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
+
+    const sock = io(socketUrl, {
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 5,
+    });
+
+    sock.on('connect', () => {
+      setSocketConnected(true);
+      // Join the user's personal room so the backend can push targeted notifications
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.id) sock.emit('join', user.id);
+    });
+
+    sock.on('disconnect', () => setSocketConnected(false));
+
+    // Listen for real-time notifications pushed from the backend routes
+    sock.on('notification', (data) => {
+      setNotifications(prev => [{ ...data, _id: data._id || Date.now().toString() }, ...prev]);
+    });
+
+    socketRef.current = sock;
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
+  // ── Actions ────────────────────────────────────────────────────────────────
+  const markAsRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}`, { read: true });
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+    } catch { /* silent */ }
   };
 
-  // Filter notifications
-  useEffect(() => {
-    let filtered = notifications;
-
-    if (filterType !== 'all') {
-      filtered = filtered.filter(n => n.category === filterType);
-    }
-
-    if (!showRead) {
-      filtered = filtered.filter(n => !n.read);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(n =>
-        n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        n.message.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredNotifications(filtered);
-  }, [notifications, filterType, showRead, searchQuery]);
-
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const markAllAsRead = async () => {
+    try {
+      await api.patch('/notifications', { read: true });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch { /* silent */ }
   };
 
-  const markAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+  const deleteOne = async (id) => {
+    try {
+      await api.delete(`/notifications/${id}`);
+      setNotifications(prev => prev.filter(n => n._id !== id));
+    } catch { /* silent */ }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const clearAll = async () => {
+    try {
+      await api.delete('/notifications');
+      setNotifications([]);
+    } catch { /* silent */ }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
+  // ── Filtered list ─────────────────────────────────────────────────────────
+  const filtered = notifications.filter(n => {
+    const matchType = filterType === 'all' || n.type === filterType || n.category === filterType;
+    const matchSearch = !searchQuery ||
+      n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.message.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchType && matchSearch;
+  });
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
+  const unreadCount = notifications.filter(n => !n.read).length;
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-        damping: 15,
-      },
-    },
-    exit: {
-      opacity: 0,
-      x: 100,
-      transition: { duration: 0.3 },
-    },
-  };
-
+  // ── Render ────────────────────────────────────────────────────────────────
   if (!mounted || loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center flex-1 min-h-screen">
           <div className="text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-blue-600 animate-spin mx-auto"></div>
-            <p className="text-gray-600">Loading notifications...</p>
+            <div className="w-12 h-12 rounded-full border-4 border-blue-600 border-t-transparent animate-spin mx-auto" />
+            <p className="text-gray-500 text-sm">Loading notifications...</p>
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  const getTypeColor = (type) => {
-    switch (type) {
-      case 'warning': return 'text-yellow-600 bg-yellow-50';
-      case 'success': return 'text-green-600 bg-green-50';
-      case 'error': return 'text-red-600 bg-red-50';
-      case 'info': return 'text-blue-600 bg-blue-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
-
   const statusBadge = (
-    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
-      socketConnected ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-    }`}>
-      {socketConnected ? <><Wifi className="w-3 h-3" /><span>Live</span></> : <><WifiOff className="w-3 h-3" /><span>Offline</span></>}
+    <div className="flex items-center gap-2">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+        socketConnected ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
+      }`}>
+        {socketConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+        {socketConnected ? 'Live' : 'Offline'}
+      </div>
+      <button
+        onClick={fetchNotifications}
+        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition"
+        title="Refresh"
+      >
+        <RefreshCw className="w-4 h-4" />
+      </button>
     </div>
   );
 
   return (
     <DashboardLayout pageTitle="Notifications" actions={statusBadge}>
-      <div className="p-4 sm:p-8 space-y-6">
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex gap-2 w-full sm:w-auto">
-              <div className="flex-1 sm:flex-none relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search notifications..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value="all">All Types</option>
-                <option value="budget">Budget</option>
-                <option value="transaction">Transaction</option>
-                <option value="expense">Expense</option>
-                <option value="report">Report</option>
-              </select>
-            </div>
+      <div className="p-4 sm:p-6 lg:p-8 space-y-5">
 
-            <div className="flex gap-2">
-              <button
-                onClick={markAllAsRead}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition"
-              >
-                Mark all as read
-              </button>
-              <button
-                onClick={clearAll}
-                className="px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition"
-              >
-                Clear all
-              </button>
-            </div>
-          </div>
-
-          {/* Notifications List */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-3"
-          >
-            <AnimatePresence>
-              {filteredNotifications.length > 0 ? (
-                filteredNotifications.map((notification) => (
-                  <motion.div
-                    key={notification.id}
-                    variants={itemVariants}
-                    exit="exit"
-                    className={`p-4 rounded-lg border border-gray-200 flex items-start justify-between cursor-pointer transition hover:shadow-md ${
-                      notification.read ? 'bg-gray-50' : `${getTypeColor(notification.type)}`
-                    }`}
-                    onClick={() => markAsRead(notification.id)}
-                  >
-                    <div className="flex items-start space-x-4 flex-1">
-                      <notification.icon className={`w-6 h-6 mt-1 flex-shrink-0 ${
-                        notification.type === 'warning' ? 'text-yellow-600' :
-                        notification.type === 'success' ? 'text-green-600' :
-                        notification.type === 'error' ? 'text-red-600' : 'text-blue-600'
-                      }`} />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                        <p className="text-xs text-gray-500 mt-2">{notification.timestamp}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteNotification(notification.id);
-                      }}
-                      className="ml-4 p-2 hover:bg-gray-200 rounded-lg transition"
-                    >
-                      <Trash2 className="w-4 h-4 text-gray-500" />
-                    </button>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 font-semibold">No notifications yet</p>
-                  <p className="text-gray-400 text-sm">You're all caught up!</p>
-                </div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+        {/* Stats bar */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-semibold text-gray-800">
+            {unreadCount > 0
+              ? <span className="text-blue-600">{unreadCount} unread</span>
+              : <span className="text-gray-400">All caught up ✅</span>}
+          </span>
+          <span className="text-gray-300">·</span>
+          <span className="text-xs text-gray-500">{notifications.length} total</span>
         </div>
+
+        {/* Toolbar */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search notifications..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none bg-white"
+          >
+            <option value="all">All</option>
+            <option value="expense">Expenses</option>
+            <option value="budget">Budgets</option>
+            <option value="payment">Bank / Payment</option>
+            <option value="success">Success</option>
+            <option value="warning">Warnings</option>
+          </select>
+          <div className="flex gap-2">
+            <button
+              onClick={markAllAsRead}
+              className="px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition whitespace-nowrap"
+            >
+              Mark all read
+            </button>
+            <button
+              onClick={clearAll}
+              className="px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition whitespace-nowrap"
+            >
+              Clear all
+            </button>
+          </div>
+        </div>
+
+        {/* Notification Cards */}
+        <motion.div className="space-y-2" initial="hidden" animate="visible" variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+        }}>
+          <AnimatePresence>
+            {filtered.length > 0 ? filtered.map(n => {
+              const Icon = TYPE_ICON[n.type] || Info;
+              const style = TYPE_STYLE[n.type] || TYPE_STYLE.info;
+              return (
+                <motion.div
+                  key={n._id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: 60, height: 0 }}
+                  transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+                  onClick={() => !n.read && markAsRead(n._id)}
+                  className={`group flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
+                    n.read ? 'bg-white border-gray-100 opacity-70' : `${style} border`
+                  } hover:shadow-md`}
+                >
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    n.read ? 'bg-gray-100' : ''
+                  }`}>
+                    <Icon className={`w-5 h-5 ${n.read ? 'text-gray-400' : ''}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className={`text-sm font-semibold truncate ${n.read ? 'text-gray-600' : 'text-gray-900'}`}>
+                        {n.title}
+                      </p>
+                      {!n.read && <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      {n.createdAt
+                        ? new Date(n.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                        : 'just now'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); deleteOne(n._id); }}
+                    className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              );
+            }) : (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="text-center py-16 space-y-3"
+              >
+                <Bell className="w-12 h-12 text-gray-200 mx-auto" />
+                <p className="text-gray-500 font-semibold">No notifications</p>
+                <p className="text-gray-400 text-sm">
+                  {searchQuery || filterType !== 'all' ? 'Try clearing your filters' : 'Activity will appear here automatically'}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </DashboardLayout>
   );
 }
