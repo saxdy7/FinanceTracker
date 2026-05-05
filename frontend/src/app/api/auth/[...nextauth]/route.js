@@ -2,6 +2,15 @@ import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+// Helper — builds the API base URL safely from env vars
+const getApiUrl = () => {
+  const defaultUrl = process.env.NODE_ENV === 'production'
+    ? 'https://financetracker-oejz.onrender.com'
+    : 'http://localhost:5000';
+  const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
+  return `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
+};
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -16,11 +25,7 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const defaultUrl = process.env.NODE_ENV === 'production' 
-            ? 'https://financetracker-backend.onrender.com' 
-            : 'http://localhost:5000';
-          const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
-          const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
+          const apiUrl = getApiUrl();
           const res = await fetch(`${apiUrl}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -58,16 +63,13 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, user, account, profile }) {
-      // This block only runs on the very first sign-in (when user and account are present)
+      // This block only runs on the very first sign-in
       if (account && user) {
         if (account.provider === 'google') {
           try {
-            const defaultUrl = process.env.NODE_ENV === 'production' 
-              ? 'https://financetracker-backend.onrender.com' 
-              : 'http://localhost:5000';
-            const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
-            const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
-            
+            const apiUrl = getApiUrl();
+            console.log('🔐 Google OAuth → syncing with backend:', apiUrl);
+
             const res = await fetch(`${apiUrl}/auth/google`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -80,6 +82,7 @@ const handler = NextAuth({
             });
 
             const data = await res.json();
+            console.log('🔐 Backend Google response status:', res.status, '| has token:', !!data.token);
 
             if (res.ok && data.user && data.token) {
               token.id = data.user.id;
@@ -87,12 +90,16 @@ const handler = NextAuth({
               token.firstName = data.user.firstName;
               token.lastName = data.user.lastName;
               token.role = data.user.role;
+              token.backendSynced = true;
+              console.log('✅ Google user saved to MongoDB:', data.user.id);
             } else {
-              console.error('Google signin backend error:', data);
-              // Fallback if backend fails, but token won't be set
+              console.error('❌ Google signin backend error:', data);
+              // Store error info so session callback can detect failure
+              token.backendError = data.message || 'Backend sync failed';
             }
           } catch (error) {
-            console.error('Google sign-in sync error:', error);
+            console.error('❌ Google sign-in sync error:', error.message);
+            token.backendError = error.message;
           }
         } else if (account.provider === 'credentials') {
           token.id = user.id;
@@ -100,6 +107,7 @@ const handler = NextAuth({
           token.firstName = user.firstName;
           token.lastName = user.lastName;
           token.role = user.role;
+          token.backendSynced = true;
         }
       }
       return token;
