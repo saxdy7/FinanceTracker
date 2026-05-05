@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import {
   Plus, Trash2, Check, Wallet, CreditCard, Smartphone,
-  Building2, ShieldCheck, ChevronDown, ChevronUp, X
+  Building2, ShieldCheck, ChevronDown, ChevronUp, X, AlertCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import axios from 'axios';
+import api from '@/utils/api';
 
 const ACCOUNT_TYPES = [
   { value: 'bank', label: 'Bank Account', icon: Building2, color: 'bg-blue-100 text-blue-700', desc: 'Savings / Current account' },
@@ -107,24 +107,24 @@ export default function BankAccountsPage() {
     upiId: '',
     cardNetwork: 'Visa',
   });
+  const [fetchError, setFetchError] = useState('');
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem('token');
     if (!token) { router.push('/login'); return; }
-    fetchBankAccounts(token);
+    fetchBankAccounts();
   }, [router]);
 
-  const fetchBankAccounts = async (token) => {
+  const fetchBankAccounts = async () => {
+    setFetchError('');
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await axios.get(`${apiUrl}/users/bank-accounts`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/users/bank-accounts');
       setBankAccounts(response.data.bankAccounts || []);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
+      setFetchError(error?.response?.data?.message || 'Failed to load payment methods. Please refresh.');
     } finally {
       setLoading(false);
     }
@@ -134,16 +134,12 @@ export default function BankAccountsPage() {
     e.preventDefault();
     setFormError('');
     setSaving(true);
-    const token = localStorage.getItem('token');
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const payload = { ...formData, accountType: activeType };
-      await axios.post(`${apiUrl}/users/bank-accounts`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/users/bank-accounts', payload);
       setShowModal(false);
       setFormData({ accountHolder: '', bankName: '', accountNumber: '', ifscCode: '', upiId: '', cardNetwork: 'Visa' });
-      fetchBankAccounts(token);
+      fetchBankAccounts();
     } catch (error) {
       setFormError(error?.response?.data?.message || 'Failed to add. Please check details.');
     } finally {
@@ -153,13 +149,9 @@ export default function BankAccountsPage() {
 
   const handleDelete = async (accountId) => {
     if (!confirm('Remove this payment method?')) return;
-    const token = localStorage.getItem('token');
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/users/bank-accounts/${accountId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchBankAccounts(token);
+      await api.delete(`/users/bank-accounts/${accountId}`);
+      fetchBankAccounts();
     } catch {
       alert('Failed to remove. Please try again.');
     }
@@ -233,6 +225,21 @@ export default function BankAccountsPage() {
 
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading...</div>
+          ) : fetchError ? (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center"
+            >
+              <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
+              <p className="text-red-700 font-semibold text-sm mb-1">Could not load payment methods</p>
+              <p className="text-red-500 text-xs mb-4">{fetchError}</p>
+              <button
+                onClick={fetchBankAccounts}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition"
+              >
+                Retry
+              </button>
+            </motion.div>
           ) : bankAccounts.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
