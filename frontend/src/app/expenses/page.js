@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import axios from 'axios';
+import api from '@/utils/api';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -36,15 +36,12 @@ export default function ExpensesPage() {
     }
     const userData = localStorage.getItem('user');
     if (userData) setUser(JSON.parse(userData));
-    fetchExpenses(token);
+    fetchExpenses();
   }, [router]);
 
-  const fetchExpenses = async (token) => {
+  const fetchExpenses = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await axios.get(`${apiUrl}/expenses`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/expenses');
       const expenseList = response.data.expenses || [];
       setExpenses(expenseList);
 
@@ -69,11 +66,7 @@ export default function ExpensesPage() {
       return;
     }
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await axios.post(`${apiUrl}/expenses`, newExpense, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post('/expenses', newExpense);
       const updated = [response.data.expense, ...expenses];
       setExpenses(updated);
 
@@ -106,11 +99,7 @@ export default function ExpensesPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this expense?')) return;
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/expenses/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/expenses/${id}`);
       const updated = expenses.filter(e => e._id !== id);
       setExpenses(updated);
       const stats = {};

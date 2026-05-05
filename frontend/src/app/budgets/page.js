@@ -5,7 +5,7 @@ import { Plus, Trash2, AlertCircle, Edit2, Check, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import axios from 'axios';
+import api from '@/utils/api';
 
 const CATEGORIES = ['food', 'transport', 'shopping', 'entertainment', 'utilities', 'healthcare', 'education', 'other'];
 
@@ -33,15 +33,14 @@ export default function BudgetsPage() {
     setMounted(true);
     const token = localStorage.getItem('token');
     if (!token) { router.push('/login'); return; }
-    fetchData(token);
+    fetchData();
   }, [router]);
 
-  const fetchData = async (token) => {
+  const fetchData = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const [budgetRes, expenseRes] = await Promise.all([
-        axios.get(`${apiUrl}/budgets`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${apiUrl}/expenses?limit=500`, { headers: { Authorization: `Bearer ${token}` } })
+        api.get('/budgets'),
+        api.get('/expenses?limit=500')
       ]);
       setBudgets(budgetRes.data.budgets || []);
       setExpenses(expenseRes.data.expenses || []);
@@ -60,8 +59,6 @@ export default function BudgetsPage() {
     }
     setCreating(true);
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const today = new Date();
       const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       const payload = {
@@ -70,9 +67,7 @@ export default function BudgetsPage() {
         startDate: today.toISOString(),
         endDate: endDate.toISOString()
       };
-      const response = await axios.post(`${apiUrl}/budgets`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post('/budgets', payload);
       setBudgets(prev => [...prev, response.data.budget]);
       setShowModal(false);
       setNewBudget(EMPTY_BUDGET);
@@ -99,8 +94,6 @@ export default function BudgetsPage() {
     setSaving(true);
     setEditError('');
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const today = new Date();
       const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       const payload = {
@@ -110,9 +103,7 @@ export default function BudgetsPage() {
         startDate: today.toISOString(),
         endDate: endDate.toISOString()
       };
-      const response = await axios.put(`${apiUrl}/budgets/${editBudget._id}`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.put(`/budgets/${editBudget._id}`, payload);
       setBudgets(prev => prev.map(b => b._id === editBudget._id ? response.data.budget : b));
       setEditBudget(null);
     } catch (error) {
@@ -126,9 +117,7 @@ export default function BudgetsPage() {
   const handleDeleteBudget = async (id) => {
     if (!window.confirm('Delete this budget?')) return;
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/budgets/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await api.delete(`/budgets/${id}`);
       setBudgets(prev => prev.filter(b => b._id !== id));
     } catch {
       alert('Failed to delete budget.');

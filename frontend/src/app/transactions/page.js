@@ -5,7 +5,7 @@ import { Search, Download, Trash2, Edit2, Plus, X, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import axios from 'axios';
+import api from '@/utils/api';
 
 const CATEGORIES = ['food', 'transport', 'shopping', 'entertainment', 'utilities', 'healthcare', 'education', 'other'];
 const PAYMENT_METHODS = ['cash', 'credit-card', 'debit-card', 'bank-transfer', 'digital-wallet'];
@@ -39,16 +39,13 @@ export default function TransactionsPage() {
     setMounted(true);
     const token = localStorage.getItem('token');
     if (!token) { router.push('/login'); return; }
-    fetchTransactions(token);
-    fetchBankAccounts(token);
+    fetchTransactions();
+    fetchBankAccounts();
   }, [router]);
 
-  const fetchTransactions = async (token) => {
+  const fetchTransactions = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await axios.get(`${apiUrl}/expenses?limit=1000`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/expenses?limit=1000');
       setTransactions(res.data.expenses || []);
     } catch (err) {
       console.error('Error fetching transactions:', err);
@@ -57,12 +54,9 @@ export default function TransactionsPage() {
     }
   };
 
-  const fetchBankAccounts = async (token) => {
+  const fetchBankAccounts = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await axios.get(`${apiUrl}/users/bank-accounts`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/users/bank-accounts');
       setBankAccounts(res.data.bankAccounts || []);
     } catch {}
   };
@@ -73,16 +67,12 @@ export default function TransactionsPage() {
     if (!newTx.amount || isNaN(newTx.amount)) { setAddError('Please enter a valid amount in ₹'); return; }
     setAddSaving(true); setAddError('');
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const payload = { ...newTx, amount: parseFloat(newTx.amount), category: newTx.category.toLowerCase() };
       if (payload.bankAccountId) {
         const acc = bankAccounts.find(a => a._id === payload.bankAccountId);
         if (acc) payload.bankAccountName = acc.upiId || `${acc.bankName} ****${acc.accountNumber}`;
       }
-      const res = await axios.post(`${apiUrl}/expenses`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.post('/expenses', payload);
       setTransactions(prev => [res.data.expense, ...prev]);
       setShowAddModal(false);
       setNewTx({ description: '', amount: '', category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: 'cash', bankAccountId: '', bankAccountName: '' });
@@ -113,12 +103,8 @@ export default function TransactionsPage() {
     if (!editForm.amount || isNaN(editForm.amount)) { setEditError('Please enter a valid amount in ₹'); return; }
     setEditSaving(true); setEditError('');
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const payload = { ...editForm, amount: parseFloat(editForm.amount) };
-      const res = await axios.put(`${apiUrl}/expenses/${editingTx._id}`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.put(`/expenses/${editingTx._id}`, payload);
       const updated = res.data.expense || { ...editingTx, ...payload };
       setTransactions(prev => prev.map(t => t._id === editingTx._id ? updated : t));
       setEditingTx(null);
@@ -133,9 +119,7 @@ export default function TransactionsPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this transaction?')) return;
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/expenses/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await api.delete(`/expenses/${id}`);
       setTransactions(prev => prev.filter(t => t._id !== id));
     } catch {
       alert('Failed to delete transaction.');

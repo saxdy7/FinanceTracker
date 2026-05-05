@@ -8,7 +8,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '@/utils/api';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   TrendingUp, DollarSign, CreditCard,
@@ -79,11 +79,10 @@ export default function DashboardPage() {
     let token = localStorage.getItem('token');
     
     // If not in localStorage yet, but NextAuth is authenticated, grab it from session
-    // (This handles the race condition where dashboard renders before SessionSync finishes writing)
+    // (handles race condition where dashboard renders before SessionSync writes)
     if (!token && status === 'authenticated' && session?.user?.token) {
       token = session.user.token;
       localStorage.setItem('token', token);
-      
       const nameParts = (session.user.name || '').split(' ');
       const userObj = {
         id: session.user.id || '',
@@ -96,27 +95,30 @@ export default function DashboardPage() {
       localStorage.setItem('user', JSON.stringify(userObj));
     }
 
-    if (!token) { 
-      router.push('/login'); 
-      return; 
+    if (!token) {
+      // Give SessionSync a moment to write the token (Google OAuth race condition)
+      const retryTimer = setTimeout(() => {
+        const retryToken = localStorage.getItem('token');
+        if (!retryToken) router.push('/login');
+        else {
+          const userData = localStorage.getItem('user');
+          if (userData) setUser(JSON.parse(userData));
+          fetchDashboardData();
+        }
+      }, 1200);
+      return () => clearTimeout(retryTimer);
     }
-    
+
     const userData = localStorage.getItem('user');
     if (userData) setUser(JSON.parse(userData));
-    fetchDashboardData(token);
+    fetchDashboardData();
   }, [router, status, session]);
 
-  const fetchDashboardData = async (token) => {
+  const fetchDashboardData = async () => {
     try {
-      const defaultUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://financetracker-backend.onrender.com' 
-        : 'http://localhost:5000';
-      const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
-      const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
-      
       const [expRes, budgetRes] = await Promise.all([
-        axios.get(`${apiUrl}/expenses?limit=2000`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${apiUrl}/budgets`,              { headers: { Authorization: `Bearer ${token}` } })
+        api.get('/expenses?limit=2000'),
+        api.get('/budgets')
       ]);
 
       const expenseList = expRes.data.expenses || [];
