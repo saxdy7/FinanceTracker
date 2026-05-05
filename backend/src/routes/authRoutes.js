@@ -319,23 +319,43 @@ router.post('/google', [
 
     console.log('📝 Processing Google User:', { firstName, lastName, email, googleId });
 
-    // Check if user exists
-    let user = await User.findOne({ email });
-    console.log('🔍 User Found:', user ? 'YES' : 'NO (creating new)');
+    // Check if user exists (by email OR googleId)
+    let user = await User.findOne({ $or: [{ email }, { googleId }] });
+    console.log('🔍 User Found:', user ? `YES (id: ${user._id})` : 'NO (creating new)');
 
     if (!user) {
-      // Create new user from Google
+      // Brand new user — create from Google
       user = new User({
-        firstName: firstName,
-        lastName: lastName,
+        firstName,
+        lastName,
         email,
         profilePicture: image,
-        password: Math.random().toString(36).substring(2, 15),
+        googleId,
+        password: Math.random().toString(36).substring(2, 15) + Date.now(),
         isVerified: true
       });
-      console.log('💾 Saving New User:', user);
+      console.log('💾 Creating new Google user:', email);
       await user.save();
-      console.log('✅ User Saved:', user._id);
+      console.log('✅ New user saved:', user._id);
+    } else {
+      // User already exists (registered via email OR a previous Google sign-in)
+      // Merge: update Google-specific fields without touching password
+      let changed = false;
+      if (!user.googleId) {
+        user.googleId = googleId;
+        changed = true;
+        console.log('🔗 Linked Google ID to existing account:', email);
+      }
+      if (image && !user.profilePicture) {
+        user.profilePicture = image;
+        changed = true;
+      }
+      if (!user.isVerified) {
+        user.isVerified = true;
+        changed = true;
+      }
+      if (changed) await user.save();
+      console.log('✅ Existing user signed in via Google:', email);
     }
 
     const token = generateToken(user._id, user.role);
