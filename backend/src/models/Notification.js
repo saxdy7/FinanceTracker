@@ -25,7 +25,7 @@ const NotificationSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: ['budget', 'transaction', 'expense', 'report', 'account', 'payment', 'security'],
-      default: 'info'
+      default: 'account'
     },
     read: {
       type: Boolean,

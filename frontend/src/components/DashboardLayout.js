@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import ModernSidebar from './ModernSidebar';
 import { Menu, Bell, X, ChevronLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -25,10 +26,13 @@ export default function DashboardLayout({ children, pageTitle, actions }) {
     setMobileOpen(false);
   }, [pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear local session data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    router.push('/login');
+    // Sign out of NextAuth — this clears the Google OAuth session cookie
+    // callbackUrl='/' sends the user to the landing page, not /login
+    await signOut({ callbackUrl: '/', redirect: true });
   };
 
   return (

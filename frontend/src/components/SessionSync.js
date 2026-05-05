@@ -40,8 +40,10 @@ export default function SessionSync() {
           console.log('✅ SessionSync: token stored for', user.email);
         }
 
-        // Redirect to dashboard from auth pages or the root
-        const authPages = ['/login', '/register', '/'];
+        // Redirect to dashboard from auth pages
+        // NOTE: '/' is excluded because after logout signOut sends user to '/'
+        // and we must NOT bounce them back to dashboard from there.
+        const authPages = ['/login', '/register'];
         if (authPages.includes(pathname) && !synced.current) {
           synced.current = true;
           router.replace('/dashboard');
