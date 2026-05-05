@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     try {
       const defaultUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://financetracker-backend.onrender.com' 
+        ? 'https://financetracker-oejz.onrender.com' 
         : 'http://localhost:5000';
       const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
       const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
@@ -41,7 +41,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       const defaultUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://financetracker-backend.onrender.com' 
+        ? 'https://financetracker-oejz.onrender.com' 
         : 'http://localhost:5000';
       const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
       const apiUrl = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;
@@ -180,6 +180,13 @@ export default function LoginPage() {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </motion.button>
+
+          {/* Forgot Password Link */}
+          <div className="text-center mt-3">
+            <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+              Forgot password?
+            </Link>
+          </div>
         </form>
 
         {/* Sign Up Link */}

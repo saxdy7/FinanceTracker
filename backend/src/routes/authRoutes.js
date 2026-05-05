@@ -2,9 +2,22 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const { verifyToken } = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+// ─── Email Transporter ────────────────────────────────────────────────────────
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+};
 
 // Generate JWT Token
 const generateToken = (id, role) => {
@@ -149,7 +162,7 @@ router.post('/verify-email', [
   }
 });
 
-// Request Password Reset
+// Request Password Reset — sends real email with reset link
 router.post('/forgot-password', [
   body('email').isEmail().withMessage('Valid email is required')
 ], async (req, res) => {
@@ -162,29 +175,62 @@ router.post('/forgot-password', [
     const { email } = req.body;
 
     const user = await User.findOne({ email });
+    // Always respond with success to prevent email enumeration attacks
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(200).json({ message: 'If that email exists, a reset link has been sent.' });
     }
 
-    // Generate reset token
-    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
-    await user.save();
+    // Generate a cryptographically secure reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-    res.status(200).json({
-      message: 'Password reset link sent to email',
-      resetToken: resetToken
-    });
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save({ validateBeforeSave: false });
+
+    // Build the reset URL pointing to the frontend
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+    // Send email
+    const transporter = createTransporter();
+    const mailOptions = {
+      from: `"FinanceTracker" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Reset Your FinanceTracker Password',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f9fafb;padding:32px;border-radius:12px">
+          <div style="text-align:center;margin-bottom:32px">
+            <h1 style="color:#1e40af;font-size:28px;margin:0">💰 FinanceTracker</h1>
+          </div>
+          <div style="background:white;border-radius:8px;padding:32px;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+            <h2 style="color:#111827;margin-top:0">Reset Your Password</h2>
+            <p style="color:#6b7280">Hi ${user.firstName},</p>
+            <p style="color:#6b7280">We received a request to reset your FinanceTracker password. Click the button below to set a new password. This link expires in <strong>1 hour</strong>.</p>
+            <div style="text-align:center;margin:32px 0">
+              <a href="${resetUrl}" style="background:#2563eb;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;display:inline-block">Reset Password</a>
+            </div>
+            <p style="color:#9ca3af;font-size:13px">If you didn't request this, you can safely ignore this email. Your password will not change.</p>
+            <p style="color:#9ca3af;font-size:13px">Or copy this link: <a href="${resetUrl}" style="color:#2563eb">${resetUrl}</a></p>
+          </div>
+          <p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:24px">© 2026 FinanceTracker. All rights reserved.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'If that email exists, a reset link has been sent.' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Forgot password error:', error.message);
+    res.status(500).json({ message: 'Failed to send reset email. Please try again.' });
   }
 });
 
-// Reset Password
+// Reset Password — token comes from the URL link sent in email
 router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Reset token is required'),
   body('email').isEmail().withMessage('Valid email is required'),
-  body('resetToken').notEmpty().withMessage('Reset token is required'),
   body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
@@ -193,25 +239,29 @@ router.post('/reset-password', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, resetToken, newPassword } = req.body;
+    const { token, email, newPassword } = req.body;
+
+    // Hash the incoming token and compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
       email,
-      resetPasswordToken: resetToken,
+      resetPasswordToken: hashedToken,
       resetPasswordExpire: { $gt: Date.now() }
     });
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+      return res.status(400).json({ message: 'Invalid or expired reset link. Please request a new one.' });
     }
 
     user.password = newPassword;
-    user.resetPasswordToken = null;
-    user.resetPasswordExpire = null;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
     await user.save();
 
-    res.status(200).json({ message: 'Password reset successfully' });
+    res.status(200).json({ message: 'Password reset successfully. You can now log in.' });
   } catch (error) {
+    console.error('Reset password error:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

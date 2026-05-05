@@ -1,149 +1,164 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
-import { Lock, CheckCircle, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { containerVariants, itemVariants, pageTransition } from '@/utils/animations';
+import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import api from '@/utils/api';
 
-export default function ForgotPassword() {
-  const router = useRouter();
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [resetToken, setResetToken] = useState('');
   const [error, setError] = useState('');
-  const [stage, setStage] = useState('email'); // email or reset
 
-  const handleRequestReset = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setError('Email is required');
-      return;
-    }
-
-    setLoading(true);
     setError('');
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`,
-        { email }
-      );
+    setLoading(true);
 
-      setResetToken(response.data.resetToken);
-      setStage('reset');
+    try {
+      await api.post('/auth/forgot-password', { email });
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send reset link');
+      setError(
+        err.response?.data?.message ||
+        'Something went wrong. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-2xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <Lock className="w-12 h-12 text-blue-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800">Forgot Password?</h1>
-            <p className="text-gray-600 mt-2">
-              {stage === 'email'
-                ? 'Enter your email to receive a reset link'
-                : 'Check your email for the reset link'}
-            </p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8"
+      >
+        {/* Back link */}
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Sign In
+        </Link>
 
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-800 text-sm">
-                {stage === 'email'
-                  ? 'Reset link sent to your email!'
-                  : 'Password reset link generated!'}
-              </span>
-            </div>
-          )}
+        <AnimatePresence mode="wait">
+          {!success ? (
+            <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {/* Header */}
+              <div className="mb-8">
+                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
+                  <Mail className="w-7 h-7 text-blue-600" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900">Forgot your password?</h1>
+                <p className="text-gray-500 mt-2 text-sm">
+                  No worries! Enter your email and we&apos;ll send you a reset link instantly.
+                </p>
+              </div>
 
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-red-800 text-sm">{error}</span>
-            </div>
-          )}
+              {/* Error */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-700 text-sm"
+                >
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  {error}
+                </motion.div>
+              )}
 
-          {stage === 'email' ? (
-            <form onSubmit={handleRequestReset} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={loading}
+                      placeholder="you@example.com"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:opacity-50 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
                   disabled={loading}
-                />
-              </div>
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </motion.button>
+              </form>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
-              >
-                {loading && <Loader className="w-4 h-4 animate-spin" />}
-                {loading ? 'Sending...' : 'Send Reset Link'}
-              </button>
-            </form>
+              <p className="text-center text-gray-500 text-sm mt-6">
+                Remember your password?{' '}
+                <Link href="/login" className="text-blue-600 font-semibold hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </motion.div>
           ) : (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-900 text-sm">
-                  <strong>Reset Token:</strong>
-                </p>
-                <p className="text-blue-800 text-xs font-mono mt-2 break-all bg-white p-2 rounded border border-blue-300">
-                  {resetToken}
-                </p>
-                <p className="text-blue-700 text-xs mt-2">
-                  Use this token with your new password to reset it.
-                </p>
-              </div>
-
-              <button
-                onClick={() => router.push('/reset-password')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition"
-              >
-                Go to Reset Password
-              </button>
-            </div>
-          )}
-
-          {/* Links */}
-          <div className="mt-6 space-y-2 text-center text-sm">
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 text-blue-600 hover:underline font-medium"
+            /* Success State */
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-4"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Login
-            </Link>
-            <p>
-              Don't have an account?{' '}
-              <Link href="/register" className="text-blue-600 hover:underline font-medium">
-                Register here
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-9 h-9 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox</h2>
+              <p className="text-gray-500 text-sm mb-2">
+                We sent a password reset link to
+              </p>
+              <p className="font-semibold text-gray-800 mb-6">{email}</p>
+              <p className="text-xs text-gray-400 mb-8">
+                Didn&apos;t receive it? Check your spam folder or{' '}
+                <button
+                  onClick={() => { setSuccess(false); setError(''); }}
+                  className="text-blue-600 hover:underline"
+                >
+                  try again
+                </button>
+                .
+              </p>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition text-sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Sign In
               </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

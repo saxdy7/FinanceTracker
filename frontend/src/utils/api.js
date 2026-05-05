@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const defaultUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://financetracker-backend.onrender.com' 
+  ? 'https://financetracker-oejz.onrender.com' 
   : 'http://localhost:5000';
 const rawUrl = process.env.NEXT_PUBLIC_API_URL || defaultUrl;
 const API_URL = `${rawUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}/api/v1`;

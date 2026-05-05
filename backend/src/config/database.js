@@ -15,7 +15,7 @@ const logger = winston.createLogger({
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb+srv://FinanceTracker:sMAcoIPzNC1VKDDK@financetracker.1miowbu.mongodb.net/test?appName=FinanceTracker',
+      process.env.MONGODB_URI || 'mongodb+srv://FinanceTracker:sMAcoIPzNC1VKDDK@financetracker.1miowbu.mongodb.net/financetracker?appName=FinanceTracker',
       {
         useNewUrlParser: true,
         useUnifiedTopology: true
