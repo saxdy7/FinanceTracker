@@ -18,33 +18,33 @@ const fadeUp = (delay = 0) => ({
 });
 
 const features = [
-  { icon: PieChart,     title: 'Smart Expense Tracking',   description: 'Automatically categorise every rupee spent with intelligent insights and real-time dashboards.', color: 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' },
-  { icon: Target,       title: 'Flexible Budgets',         description: 'Create custom ₹ budgets per cat                                                                      egory and get instant alerts before you overspend.',               color: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white' },
-  { icon: BarChart3,    title: 'Advanced Analytics',       description: 'Beautiful visualisations of your spending patterns across days, weeks and months.',                color: 'bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white' },
-  { icon: Brain,        title: 'AI Financial Advisor',     description: 'Get personalised recommendations powered by your own spending data in Indian Rupees.',             color: 'bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' },
-  { icon: Bell,         title: 'Smart Notifications',      description: 'Get alerted for unusual spending, budget limits, and important financial milestones.',              color: 'bg-pink-50 text-pink-600 group-hover:bg-pink-600 group-hover:text-white' },
-  { icon: Smartphone,   title: 'Mobile First',             description: 'Fully responsive — manage your finances seamlessly on any phone, tablet or desktop.',              color: 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white' },
+  { icon: PieChart, title: 'Smart Expense Tracking', description: 'Automatically categorise every rupee spent with intelligent insights and real-time dashboards.', color: 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' },
+  { icon: Target, title: 'Flexible Budgets', description: 'Create custom ₹ budgets per cat                                                                      egory and get instant alerts before you overspend.', color: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white' },
+  { icon: BarChart3, title: 'Advanced Analytics', description: 'Beautiful visualisations of your spending patterns across days, weeks and months.', color: 'bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white' },
+  { icon: Brain, title: 'AI Financial Advisor', description: 'Get personalised recommendations powered by your own spending data in Indian Rupees.', color: 'bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' },
+  { icon: Bell, title: 'Smart Notifications', description: 'Get alerted for unusual spending, budget limits, and important financial milestones.', color: 'bg-pink-50 text-pink-600 group-hover:bg-pink-600 group-hover:text-white' },
+  { icon: Smartphone, title: 'Mobile First', description: 'Fully responsive — manage your finances seamlessly on any phone, tablet or desktop.', color: 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white' },
 ];
 
 const steps = [
-  { step: '01', title: 'Create Account',      description: 'Sign up with just your email in under 60 seconds. No credit card required.' },
-  { step: '02', title: 'Add Your Expenses',   description: 'Log expenses manually or in bulk. Categories auto-detect for faster entry.' },
-  { step: '03', title: 'Track & Grow',        description: 'Monitor budgets, read AI insights, and watch your savings grow every month.' },
+  { step: '01', title: 'Create Account', description: 'Sign up with just your email in under 60 seconds. No credit card required.' },
+  { step: '02', title: 'Add Your Expenses', description: 'Log expenses manually or in bulk. Categories auto-detect for faster entry.' },
+  { step: '03', title: 'Track & Grow', description: 'Monitor budgets, read AI insights, and watch your savings grow every month.' },
 ];
 
 const testimonials = [
-  { name: 'Arjun Sharma',    role: 'Software Engineer, Bengaluru',  text: 'FinanceTracker helped me cut my food delivery spend by 40%. The AI advisor is shockingly accurate!', avatar: 'AS' },
-  { name: 'Priya Mehta',     role: 'Freelance Designer, Mumbai',    text: 'Finally a finance app built for India! ₹ everywhere, UPI support, and a beautiful interface.', avatar: 'PM' },
-  { name: 'Rohan Verma',     role: 'MBA Student, Delhi',            text: 'The budget alerts changed my habits. I went from overspending to saving ₹8,000 a month!', avatar: 'RV' },
+  { name: 'Arjun Sharma', role: 'Software Engineer, Bengaluru', text: 'FinanceTracker helped me cut my food delivery spend by 40%. The AI advisor is shockingly accurate!', avatar: 'AS' },
+  { name: 'Priya Mehta', role: 'Freelance Designer, Mumbai', text: 'Finally a finance app built for India! ₹ everywhere, UPI support, and a beautiful interface.', avatar: 'PM' },
+  { name: 'Rohan Verma', role: 'MBA Student, Delhi', text: 'The budget alerts changed my habits. I went from overspending to saving ₹8,000 a month!', avatar: 'RV' },
 ];
 
 const faqs = [
-  { q: 'Is my financial data secure?',             a: 'Yes. We use 256-bit AES encryption and SSL/TLS in transit. Your data is never shared with third parties.' },
-  { q: 'Does it support Indian banks and UPI?',    a: 'Absolutely! You can link bank accounts, UPI IDs, and credit/debit cards from all major Indian banks.' },
-  { q: 'Can I export my data?',                    a: 'Yes — export all transactions and reports as CSV or PDF anytime with one click.' },
-  { q: 'How does the AI advisor work?',            a: 'It reads your real spending and budget data and gives personalised advice in ₹, in plain simple language.' },
-  { q: 'Is it free?',                              a: 'Yes! FinanceTracker is completely free to use. Create an account and start tracking immediately.' },
-  { q: 'Does it work on mobile?',                  a: 'FinanceTracker is fully mobile-responsive and works great on all Android and iOS browsers.' },
+  { q: 'Is my financial data secure?', a: 'Yes. We use 256-bit AES encryption and SSL/TLS in transit. Your data is never shared with third parties.' },
+  { q: 'Does it support Indian banks and UPI?', a: 'Absolutely! You can link bank accounts, UPI IDs, and credit/debit cards from all major Indian banks.' },
+  { q: 'Can I export my data?', a: 'Yes — export all transactions and reports as CSV or PDF anytime with one click.' },
+  { q: 'How does the AI advisor work?', a: 'It reads your real spending and budget data and gives personalised advice in ₹, in plain simple language.' },
+  { q: 'Is it free?', a: 'Yes! FinanceTracker is completely free to use. Create an account and start tracking immediately.' },
+  { q: 'Does it work on mobile?', a: 'FinanceTracker is fully mobile-responsive and works great on all Android and iOS browsers.' },
 ];
 
 export default function HomePage() {
@@ -166,9 +166,9 @@ export default function HomePage() {
                 className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200"
               >
                 {[
-                  { label: 'Active Users',     value: '10K+' },
+                  { label: 'Active Users', value: '10K+' },
                   { label: 'Expenses Tracked', value: '₹50Cr+' },
-                  { label: 'Data Encrypted',   value: '256-bit' },
+                  { label: 'Data Encrypted', value: '256-bit' },
                 ].map((stat, i) => (
                   <div key={i}>
                     <div className="font-bold text-3xl text-blue-600">{stat.value}</div>
@@ -218,7 +218,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  {['M','T','W','T','F','S','S'].map((d, i) => (
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
                     <span key={i} className={`text-[10px] flex-1 text-center ${i === 5 ? 'font-bold text-blue-600' : 'text-gray-400'}`}>{d}</span>
                   ))}
                 </div>
@@ -498,7 +498,7 @@ export default function HomePage() {
                 <li><Link href="/cookie-policy" className="hover:text-white transition">Cookie Policy</Link></li>
               </ul>
             </div>
-          </div> 
+          </div>
           <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">

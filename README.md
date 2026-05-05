@@ -6,6 +6,14 @@ A full-stack personal finance management web application built for India — tra
 
 ---
 
+## 📸 Screenshots
+
+| Landing Page | Main Dashboard | AI Advisor |
+|---|---|---|
+| <img src="https://finance-tracker-xi-three-76.vercel.app" width="250" alt="Landing Page"/> | <img src="https://finance-tracker-xi-three-76.vercel.app/dashboard" width="250" alt="Dashboard"/> | <img src="https://finance-tracker-xi-three-76.vercel.app/chat" width="250" alt="AI Chat"/> |
+
+---
+
 ## 🌟 Key Features
 
 - 🔐 Email/Password + Google OAuth 2.0 login
@@ -154,6 +162,39 @@ npm run dev
 ```
 
 Open **http://localhost:3000**
+
+---
+
+## 🏗️ How It Works (Architecture)
+1. **Frontend:** User interacts with the Next.js UI (React 18 + Tailwind).
+2. **Auth:** NextAuth handles Google login, syncing securely with the backend JWT system via `SessionSync`.
+3. **Database:** Express.js securely reads/writes to MongoDB Atlas using Mongoose ODM.
+4. **AI:** Spending data is formatted into a prompt and sent to the **Groq API (Llama 3.1)** to generate personalized financial advice.
+5. **Real-time:** Socket.IO instantly pushes budget limit warnings and transaction alerts directly to the user's screen without page reloads.
+
+---
+
+## 🧠 Challenges Overcome
+- **OAuth Syncing:** Solved race conditions between NextAuth's internal session and our custom Express backend JWT token system.
+- **Real-Time Delivery:** Implemented user-specific Socket.IO rooms (`user:{userId}`) so that budget alerts are only broadcasted to the correct user.
+- **Cross-Origin Security:** Properly managed CORS headers and preflight checks between Vercel (Frontend) and Render (Backend).
+
+---
+
+## 🔌 Core API Routes
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/api/v1/auth/google` | OAuth Account Synchronization |
+| `GET` | `/api/v1/expenses` | Fetch paginated & filtered expenses |
+| `POST` | `/api/v1/budgets` | Create budget & trigger Socket.IO alert |
+| `POST` | `/api/v1/chat` | Send transaction history to Groq AI LLM |
+
+---
+
+## 🚀 Future Roadmap
+- [ ] Implement Plaid API for automatic bank statement syncing
+- [ ] Add recurring expenses (subscriptions) detection
+- [ ] Add dark/light mode toggle for the dashboard side
 
 ---
 
